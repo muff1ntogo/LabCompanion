@@ -214,9 +214,9 @@ export function TimerManager({
                 {/* Time display */}
                 <div className="text-center">
                   <div className={`text-2xl font-mono font-bold ${
-                    timer.isCompleted ? 'text-green-600' :
-                    timer.remaining <= 60 ? 'text-red-600' :
-                    timer.isRunning ? 'text-blue-600' : 'text-gray-900'
+                    timer.isCompleted ? 'text-green-600 dark:text-green-400' :
+                    timer.remaining <= 60 ? 'text-red-600 dark:text-red-400' :
+                    timer.isRunning ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
                   }`}>
                     {formatTime(timer.remaining)}
                   </div>
@@ -271,7 +271,7 @@ export function TimerManager({
       </div>
 
       {relevantTimers.length === 0 && !widgetId && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <TimerIcon className="w-12 h-12 mx-auto mb-2 text-gray-300" />
           <p>No active timers</p>
           <p className="text-sm">Add a timer to get started</p>

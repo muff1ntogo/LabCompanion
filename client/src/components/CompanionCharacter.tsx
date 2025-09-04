@@ -153,7 +153,7 @@ export function CompanionCharacter() {
   const { companion } = useQuests();
 
   return (
-    <div className="w-full h-40 bg-gradient-to-b from-blue-50 to-white rounded-lg border border-blue-100">
+    <div className="w-full h-40 bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 rounded-lg border border-blue-100 dark:border-gray-600">
       <Canvas
         camera={{ position: [0, 0, 3], fov: 50 }}
         style={{ background: 'transparent' }}
@@ -176,13 +176,13 @@ export function CompanionCharacter() {
       
       {/* Energy indicator */}
       <div className="px-4 pb-2">
-        <div className="flex items-center justify-between text-xs text-gray-600">
+        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-300">
           <span>Energy</span>
           <span>{companion.energy}/100</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
+        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1 mt-1">
           <div 
-            className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+            className="bg-blue-500 dark:bg-blue-400 h-1 rounded-full transition-all duration-300"
             style={{ width: `${companion.energy}%` }}
           />
         </div>

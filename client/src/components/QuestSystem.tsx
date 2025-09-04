@@ -57,12 +57,12 @@ export function QuestSystem() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold text-blue-600">{playerScore}</div>
-              <div className="text-sm text-gray-600">Research Points</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{playerScore}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Research Points</div>
             </div>
             <div className="text-right">
-              <div className="text-xl font-bold text-purple-600">Level {level}</div>
-              <div className="text-sm text-gray-600">Researcher</div>
+              <div className="text-xl font-bold text-purple-600 dark:text-purple-400">Level {level}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">Researcher</div>
             </div>
           </div>
           
@@ -85,7 +85,7 @@ export function QuestSystem() {
         
         {activeQuests.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-8 text-gray-500">
+            <CardContent className="text-center py-8 text-gray-500 dark:text-gray-400">
               <CheckCircle className="w-12 h-12 mx-auto mb-2 text-gray-300" />
               <p>All quests completed!</p>
               <p className="text-sm">Keep doing research to unlock more quests</p>
@@ -118,7 +118,7 @@ export function QuestSystem() {
                 </CardHeader>
                 
                 <CardContent className="space-y-3">
-                  <p className="text-sm text-gray-600">{quest.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{quest.description}</p>
                   
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">

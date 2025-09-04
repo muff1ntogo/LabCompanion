@@ -200,7 +200,7 @@ export function ProtocolBuilder() {
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold">Protocol Builder</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Protocol Builder</h1>
             <div className="flex items-center gap-2">
               {currentProtocol && (
                 <>
@@ -317,7 +317,7 @@ export function ProtocolBuilder() {
             {/* Widget Palette - Only show in build mode */}
             {viewMode === 'build' && (
               <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto">
-                <h3 className="font-medium mb-4">Widget Palette</h3>
+                <h3 className="font-medium mb-4 text-gray-900 dark:text-white">Widget Palette</h3>
                 <div className="space-y-2">
                   <WidgetItem type="timer" onAdd={handleAddWidget} />
                   <WidgetItem type="checklist" onAdd={handleAddWidget} />

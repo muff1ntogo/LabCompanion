@@ -189,7 +189,7 @@ export function ChecklistManager({
                         className="mt-0.5"
                       />
                       <span className={`flex-1 text-sm ${
-                        item.completed ? 'line-through text-gray-500' : 'text-gray-900'
+                        item.completed ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'
                       }`}>
                         {item.text}
                       </span>
@@ -237,7 +237,7 @@ export function ChecklistManager({
       </div>
 
       {relevantChecklists.length === 0 && !widgetId && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <CheckSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
           <p>No checklists created</p>
           <p className="text-sm">Add a checklist to track your tasks</p>
