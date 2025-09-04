@@ -8,6 +8,7 @@ import { GameUI } from "./components/GameUI";
 import { useQuests } from "./lib/stores/useQuests";
 import { useProtocol } from "./lib/stores/useProtocol";
 import { useAudio } from "./lib/stores/useAudio";
+import { useSettings } from "./lib/stores/useSettings";
 
 // Simple loading component
 function LoadingScreen() {
@@ -48,16 +49,18 @@ function SoundManager() {
 function App() {
   const { loadFromStorage: loadQuests } = useQuests();
   const { loadFromStorage: loadProtocols } = useProtocol();
+  const { loadFromStorage: loadSettings } = useSettings();
 
   // Initialize app data
   useEffect(() => {
     // Load saved data from localStorage
     loadQuests();
     loadProtocols();
+    loadSettings();
 
     // Set up the app title
     document.title = "ResearchLab - Gamified Research Assistant";
-  }, [loadQuests, loadProtocols]);
+  }, [loadQuests, loadProtocols, loadSettings]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden' }}>

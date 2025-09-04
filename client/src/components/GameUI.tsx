@@ -23,6 +23,7 @@ import { CompanionCharacter } from './CompanionCharacter';
 import { useQuests } from '@/lib/stores/useQuests';
 import { useAudio } from '@/lib/stores/useAudio';
 import { cn } from '@/lib/utils';
+import { SettingsPanel } from './SettingsPanel';
 
 export function GameUI() {
   const [activeTab, setActiveTab] = useState('protocols');
@@ -89,6 +90,7 @@ export function GameUI() {
                 <Volume2 className="w-4 h-4 text-blue-600" />
               )}
             </Button>
+            <SettingsPanel />
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -117,18 +119,21 @@ export function GameUI() {
               Level {level}
             </Badge>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleMute}
-            className="h-8 w-8 p-0"
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 text-gray-500" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-blue-600" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              className="h-8 w-8 p-0"
+            >
+              {isMuted ? (
+                <VolumeX className="w-4 h-4 text-gray-500" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-blue-600" />
+              )}
+            </Button>
+            <SettingsPanel />
+          </div>
         </div>
 
         {/* Mobile Navigation Menu */}

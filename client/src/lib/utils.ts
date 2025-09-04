@@ -10,4 +10,9 @@ const getLocalStorage = (key: string): any =>
 const setLocalStorage = (key: string, value: any): void =>
   window.localStorage.setItem(key, JSON.stringify(value));
 
+// Utility function for corner styles
+export function getCornerStyle(cornerStyle: 'rounded' | 'sharp') {
+  return cornerStyle === 'rounded' ? 'rounded-lg' : 'rounded-none';
+}
+
 export { getLocalStorage, setLocalStorage };
