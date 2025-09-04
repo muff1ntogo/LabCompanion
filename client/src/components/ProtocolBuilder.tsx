@@ -12,6 +12,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
+  DialogDescription,
   DialogTrigger 
 } from '@/components/ui/dialog';
 import { Plus, Save, Eye, Trash2, Edit } from 'lucide-react';
@@ -237,6 +238,9 @@ export function ProtocolBuilder() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Create New Protocol</DialogTitle>
+                    <DialogDescription>
+                      Create a new research protocol with custom widgets and settings.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
                     <Input
