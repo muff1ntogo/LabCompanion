@@ -59,14 +59,14 @@ export function GameUI() {
   ];
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b shadow-sm px-4 py-3">
+      <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo/Title */}
           <div className="flex items-center gap-2">
             <FlaskConical className="w-6 h-6 text-blue-600" />
-            <h1 className="text-lg font-bold text-gray-900">ResearchLab</h1>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">ResearchLab</h1>
           </div>
 
           {/* Player Stats - Desktop */}
@@ -162,7 +162,7 @@ export function GameUI() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Desktop */}
-        <aside className="hidden md:flex w-80 bg-white border-r flex-col">
+        <aside className="hidden md:flex w-80 bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex-col">
           {/* Companion */}
           <div className="p-4 border-b">
             <CompanionCharacter />
@@ -190,7 +190,7 @@ export function GameUI() {
         {/* Main Content */}
         <main className="flex-1 overflow-hidden">
           {/* Mobile Companion */}
-          <div className="md:hidden p-4 bg-white border-b">
+          <div className="md:hidden p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
             <CompanionCharacter />
           </div>
 
@@ -212,7 +212,7 @@ export function GameUI() {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden bg-white border-t">
+      <nav className="md:hidden bg-white dark:bg-gray-800 border-t dark:border-gray-700">
         <div className="grid grid-cols-4">
           {tabs.map((tab) => (
             <Button
@@ -221,7 +221,7 @@ export function GameUI() {
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "h-16 flex-col gap-1 rounded-none",
-                activeTab === tab.id ? "bg-blue-50 text-blue-600" : "text-gray-600"
+                activeTab === tab.id ? "bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300" : "text-gray-600 dark:text-gray-300"
               )}
             >
               {tab.icon}

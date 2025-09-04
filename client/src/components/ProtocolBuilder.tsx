@@ -196,9 +196,9 @@ export function ProtocolBuilder() {
 
   return (
     <DragDropProvider>
-      <div className="h-full flex flex-col bg-gray-50">
+      <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <div className="bg-white border-b p-4">
+        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">Protocol Builder</h1>
             <div className="flex items-center gap-2">
@@ -316,7 +316,7 @@ export function ProtocolBuilder() {
           <div className="flex-1 flex">
             {/* Widget Palette - Only show in build mode */}
             {viewMode === 'build' && (
-              <div className="w-64 bg-white border-r p-4 overflow-y-auto">
+              <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto">
                 <h3 className="font-medium mb-4">Widget Palette</h3>
                 <div className="space-y-2">
                   <WidgetItem type="timer" onAdd={handleAddWidget} />
@@ -344,7 +344,7 @@ export function ProtocolBuilder() {
                 className="relative w-full h-full rounded-lg"
               >
                 {currentProtocol.widgets.length === 0 ? (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
                     {viewMode === 'build' 
                       ? 'Drag widgets here to build your protocol'
                       : 'No widgets in this protocol'
@@ -367,7 +367,7 @@ export function ProtocolBuilder() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500">
+          <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
             <div className="text-center">
               <Plus className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="text-lg">No protocol selected</p>

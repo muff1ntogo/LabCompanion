@@ -12,13 +12,7 @@ import {
   DialogDescription,
   DialogTrigger 
 } from '@/components/ui/dialog';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// Remove Select imports since we're using Switch now
 import { Settings, Moon, Sun, Square, Circle } from 'lucide-react';
 
 interface SettingsPanelProps {
@@ -42,8 +36,8 @@ export function SettingsPanel({ trigger }: SettingsPanelProps) {
     setThemeMode(checked ? 'dark' : 'light');
   };
 
-  const handleCornerStyleChange = (value: string) => {
-    setCornerStyle(value as CornerStyle);
+  const handleCornerStyleChange = (style: CornerStyle) => {
+    setCornerStyle(style);
   };
 
   const defaultTrigger = (
@@ -93,27 +87,24 @@ export function SettingsPanel({ trigger }: SettingsPanelProps) {
           {/* Corner Style */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Card Style</Label>
-            <Select value={cornerStyle} onValueChange={handleCornerStyleChange}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="rounded">
-                  <div className="flex items-center gap-2">
-                    <Circle className="w-4 h-4" />
-                    Rounded Corners
-                  </div>
-                </SelectItem>
-                <SelectItem value="sharp">
-                  <div className="flex items-center gap-2">
-                    <Square className="w-4 h-4" />
-                    Sharp Corners
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {cornerStyle === 'rounded' ? (
+                  <Circle className="w-4 h-4 text-blue-500" />
+                ) : (
+                  <Square className="w-4 h-4 text-blue-500" />
+                )}
+                <span className="text-sm">
+                  {cornerStyle === 'rounded' ? 'Rounded Corners' : 'Sharp Corners'}
+                </span>
+              </div>
+              <Switch
+                checked={cornerStyle === 'rounded'}
+                onCheckedChange={(checked) => handleCornerStyleChange(checked ? 'rounded' : 'sharp')}
+              />
+            </div>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Choose between rounded or sharp corner styles for cards
+              Toggle between rounded and sharp corner styles for cards
             </p>
           </div>
 
