@@ -229,11 +229,6 @@ export function GameUI() {
         </div>
       </nav>
 
-      {/* Minimized Companion */}
-      <CompanionCharacter 
-        isMinimized={isCompanionMinimized}
-        onToggleMinimize={() => setIsCompanionMinimized(false)}
-      />
     </div>
   );
 }
