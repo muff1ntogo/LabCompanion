@@ -285,7 +285,7 @@ export function ProtocolBuilder() {
                       {widget.completed ? 'Completed' : 'Pending'}
                     </Badge>
                   </div>
-                  {getWidgetContent(widget)}
+                  {renderWidget(widget)}
                 </Card>
               ))}
             </div>
@@ -300,7 +300,7 @@ export function ProtocolBuilder() {
                 onRemove={removeWidget}
                 onUpdate={updateWidget}
               >
-                {getWidgetContent(widget)}
+                {renderWidget(widget)}
               </PlacedWidget>
             ))}
           </DropZone>
