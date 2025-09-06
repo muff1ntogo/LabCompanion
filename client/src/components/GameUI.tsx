@@ -20,6 +20,7 @@ import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
 import { QuestSystem } from './QuestSystem';
 import { CompanionCharacter } from './CompanionCharacter';
+import { CompanionPage } from './CompanionPage';
 import { useQuests } from '@/lib/stores/useQuests';
 import { useAudio } from '@/lib/stores/useAudio';
 import { cn } from '@/lib/utils';
@@ -28,7 +29,7 @@ import { SettingsPanel } from './SettingsPanel';
 export function GameUI() {
   const [activeTab, setActiveTab] = useState('protocols');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [isCompanionMinimized, setIsCompanionMinimized] = useState(false);
+  const [isCompanionMinimized, setIsCompanionMinimized] = useState(true); // Always minimized now
   const { playerScore, level, companion } = useQuests();
   const { isMuted, toggleMute } = useAudio();
 
@@ -56,6 +57,12 @@ export function GameUI() {
       label: 'Quests',
       icon: <Trophy className="w-4 h-4" />,
       component: <QuestSystem />
+    },
+    {
+      id: 'companion',
+      label: 'Companion',
+      icon: <Heart className="w-4 h-4" />,
+      component: <CompanionPage />
     }
   ];
 
@@ -164,16 +171,6 @@ export function GameUI() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar - Desktop */}
         <aside className="hidden md:flex w-80 bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex-col">
-          {/* Companion */}
-          {!isCompanionMinimized && (
-            <div className="p-4 border-b">
-              <CompanionCharacter 
-                isMinimized={false}
-                onToggleMinimize={() => setIsCompanionMinimized(true)}
-              />
-            </div>
-          )}
-
           {/* Navigation */}
           <nav className="flex-1 p-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} orientation="vertical">
@@ -195,16 +192,6 @@ export function GameUI() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-hidden">
-          {/* Mobile Companion */}
-          {!isCompanionMinimized && (
-            <div className="md:hidden p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-              <CompanionCharacter 
-                isMinimized={false}
-                onToggleMinimize={() => setIsCompanionMinimized(true)}
-              />
-            </div>
-          )}
-
           {/* Content Area */}
           <div className="h-full overflow-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -224,7 +211,7 @@ export function GameUI() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden bg-white dark:bg-gray-800 border-t dark:border-gray-700">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {tabs.map((tab) => (
             <Button
               key={tab.id}

@@ -160,7 +160,7 @@ export function CompanionCharacter({ isMinimized = false, onToggleMinimize }: Co
 
   if (isMinimized) {
     return (
-      <div className="fixed top-4 right-4 w-16 h-16 z-40 cursor-pointer" onClick={onToggleMinimize}>
+      <div className="fixed top-4 right-4 w-12 h-12 z-40 cursor-pointer" onClick={onToggleMinimize}>
         <div className="w-full h-full bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 rounded-full border border-blue-100 dark:border-gray-600 shadow-lg">
           <Canvas
             camera={{ position: [0, 0, 3], fov: 50 }}
