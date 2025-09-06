@@ -46,6 +46,15 @@ export function ProtocolBuilder() {
   const [viewMode, setViewMode] = useState<'build' | 'run'>('build');
   const [isFullScreen, setIsFullScreen] = useState(false);
 
+  // Determine the current state
+  const getProtocolBuilderState = () => {
+    if (protocols.length === 0) return 'empty';
+    if (!currentProtocol || !isBuilding) return 'library';
+    return 'editor';
+  };
+
+  const protocolState = getProtocolBuilderState();
+
   useEffect(() => {
     loadFromStorage();
   }, [loadFromStorage]);
@@ -247,37 +256,122 @@ export function ProtocolBuilder() {
     </div>
   );
 
-  // Function to render the main protocol content
-  const renderProtocolContent = () => (
-    <>
-      {/* Widget Palette - Only show in build mode */}
-      {viewMode === 'build' && (
-        <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto flex-shrink-0">
-          <h3 className="font-medium mb-4 text-gray-900 dark:text-white">Widget Palette</h3>
-          <div className="space-y-2">
-            <WidgetItem type="timer" onAdd={handleAddWidget} />
-            <WidgetItem type="checklist" onAdd={handleAddWidget} />
-            <WidgetItem type="note" onAdd={handleAddWidget} />
-            <WidgetItem type="measurement" onAdd={handleAddWidget} />
-            <WidgetItem type="ph" onAdd={handleAddWidget} />
-          </div>
-        </div>
-      )}
+  // Empty State - No protocols exist
+  const renderEmptyState = () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center p-8">
+        <FlaskConical className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Protocols Found</h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">Create your first protocol to get started with your research workflow</p>
+      </div>
+    </div>
+  );
 
-      {/* Main Canvas Area */}
-      <div className="flex-1 relative overflow-hidden">
-        {!currentProtocol ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center p-8">
-              <FlaskConical className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Protocol Selected</h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">Create a new protocol to get started with your research workflow</p>
-            </div>
+  // Library State - Show existing protocols
+  const renderLibraryState = () => (
+    <div className="h-full overflow-y-auto p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {protocols.map((protocol) => (
+            <Card 
+              key={protocol.id}
+              className={`cursor-pointer transition-colors hover:shadow-md ${
+                currentProtocol?.id === protocol.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onClick={() => loadProtocol(protocol.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-white">{protocol.name}</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteProtocol(protocol.id);
+                    }}
+                    className="h-6 w-6 p-0 hover:bg-red-100"
+                  >
+                    <Trash2 className="w-3 h-3 text-red-500" />
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{protocol.description}</p>
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary" className="text-xs">
+                    {protocol.widgets.length} widgets
+                  </Badge>
+                  {protocol.questReward && (
+                    <Badge variant="outline" className="text-xs">
+                      +{protocol.questReward} pts
+                    </Badge>
+                  )}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      loadProtocol(protocol.id);
+                      startBuilding();
+                      setViewMode('build');
+                    }}
+                    className="flex-1"
+                  >
+                    <Edit className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      loadProtocol(protocol.id);
+                      setViewMode('run');
+                    }}
+                    className="flex-1"
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
+                    Run
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Editor State - Active protocol editing with widget palette
+  const renderEditorState = () => (
+    <>
+      {/* Widget Palette */}
+      <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto flex-shrink-0">
+        <h3 className="font-medium mb-4 text-gray-900 dark:text-white">Widget Palette</h3>
+        <div className="space-y-2">
+          <WidgetItem type="timer" onAdd={handleAddWidget} />
+          <WidgetItem type="checklist" onAdd={handleAddWidget} />
+          <WidgetItem type="note" onAdd={handleAddWidget} />
+          <WidgetItem type="measurement" onAdd={handleAddWidget} />
+          <WidgetItem type="ph" onAdd={handleAddWidget} />
+        </div>
+        
+        {isBuilding && (
+          <div className="mt-6">
+            <Button onClick={handleSaveProtocol} className="w-full">
+              <Save className="w-4 h-4 mr-2" />
+              Save Protocol
+            </Button>
           </div>
-        ) : viewMode === 'run' ? (
+        )}
+      </div>
+
+      {/* Editor Canvas */}
+      <div className="flex-1 relative overflow-hidden">
+        {viewMode === 'run' ? (
           <div className="h-full overflow-y-auto p-4">
             <div className="max-w-4xl mx-auto space-y-6">
-              {currentProtocol.widgets.map((widget) => (
+              {currentProtocol?.widgets.map((widget) => (
                 <Card key={widget.id} className="p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
@@ -292,7 +386,7 @@ export function ProtocolBuilder() {
           </div>
         ) : (
           <DropZone onDrop={(position) => handleAddWidget('note', position)}>
-            {currentProtocol.widgets.map((widget) => (
+            {currentProtocol?.widgets.map((widget) => (
               <PlacedWidget
                 key={widget.id}
                 widget={widget}
@@ -303,11 +397,30 @@ export function ProtocolBuilder() {
                 {renderWidget(widget)}
               </PlacedWidget>
             ))}
+            {currentProtocol?.widgets.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                Drag widgets here to build your protocol
+              </div>
+            )}
           </DropZone>
         )}
       </div>
     </>
   );
+
+  // Function to render the main protocol content based on state
+  const renderProtocolContent = () => {
+    switch (protocolState) {
+      case 'empty':
+        return renderEmptyState();
+      case 'library':
+        return renderLibraryState();
+      case 'editor':
+        return renderEditorState();
+      default:
+        return renderEmptyState();
+    }
+  };
 
   // Show full-screen version on mobile if enabled
   if (isFullScreen) {
@@ -406,47 +519,18 @@ export function ProtocolBuilder() {
             </div>
           </div>
 
-          {/* Protocol List */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {protocols.map((protocol) => (
-              <Card 
-                key={protocol.id}
-                className={`min-w-48 cursor-pointer transition-colors ${
-                  currentProtocol?.id === protocol.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                onClick={() => loadProtocol(protocol.id)}
-              >
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-sm">{protocol.name}</h3>
-                      <p className="text-xs text-gray-500 mt-1">{protocol.description}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {protocol.widgets.length} widgets
-                        </Badge>
-                        {protocol.questReward && (
-                          <Badge variant="outline" className="text-xs">
-                            +{protocol.questReward} pts
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteProtocol(protocol.id);
-                      }}
-                      className="h-6 w-6 p-0 hover:bg-red-100"
-                    >
-                      <Trash2 className="w-3 h-3 text-red-500" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          {/* State indicator */}
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs">
+              {protocolState === 'empty' && 'No Protocols'}
+              {protocolState === 'library' && `${protocols.length} Protocols`}
+              {protocolState === 'editor' && 'Editing Protocol'}
+            </Badge>
+            {currentProtocol && protocolState === 'editor' && (
+              <Badge variant="default" className="text-xs">
+                {currentProtocol.name}
+              </Badge>
+            )}
           </div>
         </div>
 
