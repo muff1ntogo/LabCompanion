@@ -47,9 +47,9 @@ export function QuestSystem() {
   return (
     <div className="space-y-6">
       {/* Player Progress */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-700">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-white">
             <Trophy className="w-5 h-5 text-yellow-500" />
             Research Progress
           </CardTitle>
@@ -98,13 +98,13 @@ export function QuestSystem() {
             
             return (
               <Card key={quest.id} className={`transition-colors ${
-                isComplete ? 'bg-green-50 border-green-200' : 'bg-white'
+                isComplete ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700' : 'bg-white dark:bg-gray-800'
               }`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {getQuestIcon(quest.type)}
-                      <CardTitle className="text-base">{quest.title}</CardTitle>
+                      <CardTitle className="text-base text-gray-900 dark:text-white">{quest.title}</CardTitle>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="text-xs">
@@ -153,14 +153,14 @@ export function QuestSystem() {
             Completed Quests
           </h3>
           
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-hide">
             {completedQuests.map((quest) => (
-              <Card key={quest.id} className="bg-gray-50 border-gray-200">
+              <Card key={quest.id} className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <CardContent className="p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm font-medium">{quest.title}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{quest.title}</span>
                     </div>
                     <Badge variant="outline" className="text-xs">
                       +{quest.reward} pts
@@ -183,11 +183,11 @@ export function QuestSystem() {
           
           <div className="space-y-2">
             {quests.filter(quest => !quest.unlocked).slice(0, 3).map((quest) => (
-              <Card key={quest.id} className="bg-gray-50 border-gray-200 opacity-60">
+              <Card key={quest.id} className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60">
                 <CardContent className="p-3">
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">Locked Quest</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Locked Quest</span>
                     <Badge variant="outline" className="text-xs ml-auto">
                       +{quest.reward} pts
                     </Badge>

@@ -10,6 +10,8 @@ import { Heart, Star, Zap, Settings, Palette, Volume2, VolumeX } from 'lucide-re
 export function CompanionPage() {
   const { companion, interactWithCompanion } = useQuests();
   const [selectedTheme, setSelectedTheme] = useState('default');
+  const [animationSpeed, setAnimationSpeed] = useState([1]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const companionThemes = [
     { id: 'default', name: 'Default', color: '#4ade80' },
@@ -32,7 +34,7 @@ export function CompanionPage() {
   };
 
   return (
-    <div className="h-full overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+    <div className="h-full overflow-auto scrollbar-hide p-6 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
@@ -126,7 +128,8 @@ export function CompanionPage() {
                   Animation Speed
                 </h3>
                 <Slider
-                  defaultValue={[1]}
+                  value={animationSpeed}
+                  onValueChange={setAnimationSpeed}
                   max={3}
                   min={0.5}
                   step={0.5}
@@ -148,8 +151,12 @@ export function CompanionPage() {
                   <span className="text-sm text-gray-600 dark:text-gray-300">
                     Enable interaction sounds
                   </span>
-                  <Button variant="outline" size="sm">
-                    <Volume2 className="w-4 h-4" />
+                  <Button 
+                    variant={soundEnabled ? "default" : "outline"} 
+                    size="sm"
+                    onClick={() => setSoundEnabled(!soundEnabled)}
+                  >
+                    {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>

@@ -118,7 +118,7 @@ export function DropZone({ onDrop, children, className = '' }: DropZoneProps) {
           (dropRef as any).current = node;
         }
       }}
-      className={`min-h-96 border-2 border-dashed transition-colors relative
+      className={`min-h-full w-full border-2 border-dashed transition-colors relative
         ${isOver ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'}
         ${className}`}
     >
