@@ -177,7 +177,7 @@ export function CompanionPage() {
                 
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {companion.level || 1}
+                    {Math.floor(companion.energy / 20) + 1}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
                     Companion Level
@@ -186,7 +186,7 @@ export function CompanionPage() {
                 
                 <div className="text-center">
                   <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {companion.happiness || 100}%
+                    {companion.energy}%
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-300">
                     Happiness
