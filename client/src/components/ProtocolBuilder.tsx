@@ -380,9 +380,9 @@ export function ProtocolBuilder() {
           <Button
             variant="default"
             size="icon"
-            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+            className="fixed bottom-20 right-4 h-12 w-12 rounded-full shadow-lg z-50 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 p-3" side="top" align="end">
@@ -455,10 +455,11 @@ export function ProtocolBuilder() {
           {isBuilding && (
             <Button
               onClick={handleSaveProtocol}
-              className="fixed bottom-6 left-6 shadow-lg z-50"
+              className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6"
+              size="sm"
             >
-              <Save className="w-4 h-4 mr-2" />
-              Save Protocol
+              <Save className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Save Protocol</span>
             </Button>
           )}
         </>
@@ -493,55 +494,18 @@ export function ProtocolBuilder() {
     <DragDropProvider>
       <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Protocol Builder</h1>
-            <div className="flex items-center gap-2">
-              {/* Full-screen toggle - Mobile only */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="md:hidden"
-                onClick={() => setIsFullScreen(!isFullScreen)}
-              >
-                {isFullScreen ? (
-                  <Minimize2 className="w-4 h-4" />
-                ) : (
-                  <Maximize2 className="w-4 h-4" />
-                )}
-              </Button>
+        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-3 sm:p-4">
+          <div className="flex flex-col gap-3">
+            {/* Title and main actions */}
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Protocol Builder</h1>
               
-              {currentProtocol && (
-                <>
-                  <Button
-                    variant={viewMode === 'build' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setViewMode('build');
-                      startBuilding();
-                    }}
-                  >
-                    <Edit className="w-4 h-4 mr-1" />
-                    Build
-                  </Button>
-                  <Button
-                    variant={viewMode === 'run' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setViewMode('run');
-                      stopBuilding();
-                    }}
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Run
-                  </Button>
-                </>
-              )}
+              {/* Create button - always visible */}
               <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-1" />
-                    New Protocol
+                  <Button size="sm" className="flex-shrink-0">
+                    <Plus className="w-4 h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">New Protocol</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -575,19 +539,54 @@ export function ProtocolBuilder() {
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
 
-          {/* State indicator */}
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-xs">
-              {protocolState === 'empty' && 'No Protocols'}
-              {protocolState === 'library' && `${protocols.length} Protocols`}
-              {protocolState === 'editor' && 'Editing Protocol'}
-            </Badge>
-            {currentProtocol && protocolState === 'editor' && (
-              <Badge variant="default" className="text-xs">
-                {currentProtocol.name}
-              </Badge>
+            {/* Protocol controls and state - when protocol is selected */}
+            {currentProtocol && (
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <Badge variant="outline" className="text-xs flex-shrink-0">
+                    Editing Protocol
+                  </Badge>
+                  <Badge variant="default" className="text-xs truncate max-w-32">
+                    {currentProtocol.name}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <Button
+                    variant={viewMode === 'build' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setViewMode('build');
+                      startBuilding();
+                    }}
+                  >
+                    <Edit className="w-4 h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Build</span>
+                  </Button>
+                  <Button
+                    variant={viewMode === 'run' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      setViewMode('run');
+                      stopBuilding();
+                    }}
+                  >
+                    <Eye className="w-4 h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Run</span>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* State indicator for non-editor states */}
+            {protocolState !== 'editor' && (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {protocolState === 'empty' && 'No Protocols'}
+                  {protocolState === 'library' && `${protocols.length} Protocols`}
+                </Badge>
+              </div>
             )}
           </div>
         </div>
