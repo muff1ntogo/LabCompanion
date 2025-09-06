@@ -15,7 +15,12 @@ import {
   DialogDescription,
   DialogTrigger 
 } from '@/components/ui/dialog';
-import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X, FlaskConical } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X, FlaskConical, Timer, CheckSquare, StickyNote, Thermometer, Beaker } from 'lucide-react';
 import { ProtocolWidget } from '@/types/research';
 import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
@@ -43,6 +48,7 @@ export function ProtocolBuilder() {
   const [newProtocolName, setNewProtocolName] = useState('');
   const [newProtocolDescription, setNewProtocolDescription] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showWidgetPopover, setShowWidgetPopover] = useState(false);
   const [viewMode, setViewMode] = useState<'build' | 'run'>('build');
   const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -342,49 +348,87 @@ export function ProtocolBuilder() {
     </div>
   );
 
-  // Editor State - Active protocol editing with widget palette
-  const renderEditorState = () => (
-    <>
-      {/* Widget Palette */}
-      <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto flex-shrink-0">
-        <h3 className="font-medium mb-4 text-gray-900 dark:text-white">Widget Palette</h3>
-        <div className="space-y-2">
-          <WidgetItem type="timer" onAdd={handleAddWidget} />
-          <WidgetItem type="checklist" onAdd={handleAddWidget} />
-          <WidgetItem type="note" onAdd={handleAddWidget} />
-          <WidgetItem type="measurement" onAdd={handleAddWidget} />
-          <WidgetItem type="ph" onAdd={handleAddWidget} />
-        </div>
-        
-        {isBuilding && (
-          <div className="mt-6">
-            <Button onClick={handleSaveProtocol} className="w-full">
-              <Save className="w-4 h-4 mr-2" />
-              Save Protocol
-            </Button>
-          </div>
-        )}
-      </div>
+  const getWidgetIcon = (type: ProtocolWidget['type']) => {
+    switch (type) {
+      case 'timer': return <Timer className="w-5 h-5" />;
+      case 'checklist': return <CheckSquare className="w-5 h-5" />;
+      case 'note': return <StickyNote className="w-5 h-5" />;
+      case 'temperature': return <Thermometer className="w-5 h-5" />;
+      case 'ph': return <Beaker className="w-5 h-5" />;
+      default: return <StickyNote className="w-5 h-5" />;
+    }
+  };
 
-      {/* Editor Canvas */}
-      <div className="flex-1 relative overflow-hidden">
-        {viewMode === 'run' ? (
-          <div className="h-full overflow-y-auto p-4">
-            <div className="max-w-4xl mx-auto space-y-6">
-              {currentProtocol?.widgets.map((widget) => (
-                <Card key={widget.id} className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
-                    <Badge variant={widget.completed ? 'default' : 'secondary'}>
-                      {widget.completed ? 'Completed' : 'Pending'}
-                    </Badge>
-                  </div>
-                  {renderWidget(widget)}
-                </Card>
-              ))}
-            </div>
+  const getWidgetLabel = (type: ProtocolWidget['type']) => {
+    switch (type) {
+      case 'timer': return 'Timer';
+      case 'checklist': return 'Checklist';
+      case 'note': return 'Note';
+      case 'temperature': return 'Temperature';
+      case 'ph': return 'pH Meter';
+      default: return 'Widget';
+    }
+  };
+
+  // Widget Popup Menu Component
+  const renderWidgetPopup = () => {
+    const widgetTypes: ProtocolWidget['type'][] = ['timer', 'checklist', 'note', 'temperature', 'ph'];
+    
+    return (
+      <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="default"
+            size="icon"
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50"
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3" side="top" align="end">
+          <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {widgetTypes.map((type) => (
+              <Button
+                key={type}
+                variant="ghost"
+                className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={() => {
+                  handleAddWidget(type);
+                  setShowWidgetPopover(false);
+                }}
+              >
+                {getWidgetIcon(type)}
+                <span className="text-xs">{getWidgetLabel(type)}</span>
+              </Button>
+            ))}
           </div>
-        ) : (
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
+  // Editor State - Active protocol editing with full-width canvas
+  const renderEditorState = () => (
+    <div className="flex-1 relative overflow-hidden">
+      {viewMode === 'run' ? (
+        <div className="h-full overflow-y-auto p-4">
+          <div className="max-w-4xl mx-auto space-y-6">
+            {currentProtocol?.widgets.map((widget) => (
+              <Card key={widget.id} className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
+                  <Badge variant={widget.completed ? 'default' : 'secondary'}>
+                    {widget.completed ? 'Completed' : 'Pending'}
+                  </Badge>
+                </div>
+                {renderWidget(widget)}
+              </Card>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <>
           <DropZone onDrop={(position) => handleAddWidget('note', position)}>
             {currentProtocol?.widgets.map((widget) => (
               <PlacedWidget
@@ -399,13 +443,27 @@ export function ProtocolBuilder() {
             ))}
             {currentProtocol?.widgets.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                Drag widgets here to build your protocol
+                Click the + button to add widgets and build your protocol
               </div>
             )}
           </DropZone>
-        )}
-      </div>
-    </>
+          
+          {/* Widget Popup Menu */}
+          {renderWidgetPopup()}
+          
+          {/* Save Button */}
+          {isBuilding && (
+            <Button
+              onClick={handleSaveProtocol}
+              className="fixed bottom-6 left-6 shadow-lg z-50"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Protocol
+            </Button>
+          )}
+        </>
+      )}
+    </div>
   );
 
   // Function to render the main protocol content based on state
