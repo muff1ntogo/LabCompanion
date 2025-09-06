@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogTrigger 
 } from '@/components/ui/dialog';
-import { Plus, Save, Eye, Trash2, Edit } from 'lucide-react';
+import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X } from 'lucide-react';
 import { ProtocolWidget } from '@/types/research';
 import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
@@ -44,6 +44,7 @@ export function ProtocolBuilder() {
   const [newProtocolDescription, setNewProtocolDescription] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [viewMode, setViewMode] = useState<'build' | 'run'>('build');
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   useEffect(() => {
     loadFromStorage();
@@ -194,6 +195,129 @@ export function ProtocolBuilder() {
     }
   };
 
+  // Full-screen protocol builder component
+  const FullScreenProtocolBuilder = () => (
+    <div className="fixed inset-0 z-50 bg-gray-50 dark:bg-gray-900 flex flex-col">
+      {/* Full-screen header */}
+      <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Protocol Builder</h1>
+          <div className="flex items-center gap-2">
+            {currentProtocol && (
+              <>
+                <Button
+                  variant={viewMode === 'build' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setViewMode('build');
+                    startBuilding();
+                  }}
+                >
+                  <Edit className="w-4 h-4 mr-1" />
+                  Build
+                </Button>
+                <Button
+                  variant={viewMode === 'run' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    setViewMode('run');
+                    stopBuilding();
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  Run
+                </Button>
+              </>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsFullScreen(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Full-screen content */}
+      <div className="flex-1 flex overflow-hidden">
+        {renderProtocolContent()}
+      </div>
+    </div>
+  );
+
+  // Function to render the main protocol content
+  const renderProtocolContent = () => (
+    <>
+      {/* Widget Palette - Only show in build mode */}
+      {viewMode === 'build' && (
+        <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto flex-shrink-0">
+          <h3 className="font-medium mb-4 text-gray-900 dark:text-white">Widget Palette</h3>
+          <div className="space-y-2">
+            <WidgetItem type="timer" onAdd={handleAddWidget} />
+            <WidgetItem type="checklist" onAdd={handleAddWidget} />
+            <WidgetItem type="note" onAdd={handleAddWidget} />
+            <WidgetItem type="measurement" onAdd={handleAddWidget} />
+            <WidgetItem type="ph" onAdd={handleAddWidget} />
+          </div>
+        </div>
+      )}
+
+      {/* Main Canvas Area */}
+      <div className="flex-1 relative overflow-hidden">
+        {!currentProtocol ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center p-8">
+              <FlaskConical className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Protocol Selected</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Create a new protocol to get started with your research workflow</p>
+            </div>
+          </div>
+        ) : viewMode === 'run' ? (
+          <div className="h-full overflow-y-auto p-4">
+            <div className="max-w-4xl mx-auto space-y-6">
+              {currentProtocol.widgets.map((widget) => (
+                <Card key={widget.id} className="p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
+                    <Badge variant={widget.completed ? 'default' : 'secondary'}>
+                      {widget.completed ? 'Completed' : 'Pending'}
+                    </Badge>
+                  </div>
+                  {renderWidgetContent(widget)}
+                </Card>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <DropZone onDrop={handleAddWidget}>
+            {currentProtocol.widgets.map((widget) => (
+              <PlacedWidget
+                key={widget.id}
+                widget={widget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onUpdate={updateWidget}
+              >
+                {renderWidgetContent(widget)}
+              </PlacedWidget>
+            ))}
+          </DropZone>
+        )}
+      </div>
+    </>
+  );
+
+  // Show full-screen version on mobile if enabled
+  if (isFullScreen) {
+    return (
+      <DragDropProvider>
+        <FullScreenProtocolBuilder />
+      </DragDropProvider>
+    );
+  }
+
   return (
     <DragDropProvider>
       <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -202,6 +326,20 @@ export function ProtocolBuilder() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">Protocol Builder</h1>
             <div className="flex items-center gap-2">
+              {/* Full-screen toggle - Mobile only */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="md:hidden"
+                onClick={() => setIsFullScreen(!isFullScreen)}
+              >
+                {isFullScreen ? (
+                  <Minimize2 className="w-4 h-4" />
+                ) : (
+                  <Maximize2 className="w-4 h-4" />
+                )}
+              </Button>
+              
               {currentProtocol && (
                 <>
                   <Button
