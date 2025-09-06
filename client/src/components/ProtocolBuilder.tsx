@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogTrigger 
 } from '@/components/ui/dialog';
-import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X } from 'lucide-react';
+import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X, FlaskConical } from 'lucide-react';
 import { ProtocolWidget } from '@/types/research';
 import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
@@ -285,13 +285,13 @@ export function ProtocolBuilder() {
                       {widget.completed ? 'Completed' : 'Pending'}
                     </Badge>
                   </div>
-                  {renderWidgetContent(widget)}
+                  {getWidgetContent(widget)}
                 </Card>
               ))}
             </div>
           </div>
         ) : (
-          <DropZone onDrop={handleAddWidget}>
+          <DropZone onDrop={(position) => handleAddWidget('note', position)}>
             {currentProtocol.widgets.map((widget) => (
               <PlacedWidget
                 key={widget.id}
@@ -300,7 +300,7 @@ export function ProtocolBuilder() {
                 onRemove={removeWidget}
                 onUpdate={updateWidget}
               >
-                {renderWidgetContent(widget)}
+                {getWidgetContent(widget)}
               </PlacedWidget>
             ))}
           </DropZone>
@@ -450,69 +450,9 @@ export function ProtocolBuilder() {
           </div>
         </div>
 
-        {currentProtocol ? (
-          <div className="flex-1 flex">
-            {/* Widget Palette - Only show in build mode */}
-            {viewMode === 'build' && (
-              <div className="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 p-4 overflow-y-auto">
-                <h3 className="font-medium mb-4 text-gray-900 dark:text-white">Widget Palette</h3>
-                <div className="space-y-2">
-                  <WidgetItem type="timer" onAdd={handleAddWidget} />
-                  <WidgetItem type="checklist" onAdd={handleAddWidget} />
-                  <WidgetItem type="note" onAdd={handleAddWidget} />
-                  <WidgetItem type="temperature" onAdd={handleAddWidget} />
-                  <WidgetItem type="ph" onAdd={handleAddWidget} />
-                </div>
-                
-                {isBuilding && (
-                  <div className="mt-6">
-                    <Button onClick={handleSaveProtocol} className="w-full">
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Protocol
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Canvas */}
-            <div className="flex-1 p-4">
-              <DropZone
-                onDrop={(position) => handleAddWidget('timer', position)}
-                className="relative w-full h-full rounded-lg"
-              >
-                {currentProtocol.widgets.length === 0 ? (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                    {viewMode === 'build' 
-                      ? 'Drag widgets here to build your protocol'
-                      : 'No widgets in this protocol'
-                    }
-                  </div>
-                ) : (
-                  currentProtocol.widgets.map((widget) => (
-                    <PlacedWidget
-                      key={widget.id}
-                      widget={widget}
-                      onMove={moveWidget}
-                      onRemove={removeWidget}
-                      onUpdate={updateWidget}
-                    >
-                      {renderWidget(widget)}
-                    </PlacedWidget>
-                  ))
-                )}
-              </DropZone>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400">
-            <div className="text-center">
-              <Plus className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg">No protocol selected</p>
-              <p className="text-sm">Create a new protocol to get started</p>
-            </div>
-          </div>
-        )}
+        <div className="flex-1 flex overflow-hidden">
+          {renderProtocolContent()}
+        </div>
       </div>
     </DragDropProvider>
   );

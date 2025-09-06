@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { Minimize2 } from 'lucide-react';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { useGLTF, Text, Float } from '@react-three/drei';
 import * as THREE from 'three';
@@ -149,11 +150,53 @@ function CompanionText() {
   );
 }
 
-export function CompanionCharacter() {
+interface CompanionCharacterProps {
+  isMinimized?: boolean;
+  onToggleMinimize?: () => void;
+}
+
+export function CompanionCharacter({ isMinimized = false, onToggleMinimize }: CompanionCharacterProps = {}) {
   const { companion } = useQuests();
 
+  if (isMinimized) {
+    return (
+      <div className="fixed top-4 right-4 w-16 h-16 z-40 cursor-pointer" onClick={onToggleMinimize}>
+        <div className="w-full h-full bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 rounded-full border border-blue-100 dark:border-gray-600 shadow-lg">
+          <Canvas
+            camera={{ position: [0, 0, 3], fov: 50 }}
+            style={{ background: 'transparent' }}
+          >
+            {/* Lighting */}
+            <ambientLight intensity={0.6} />
+            <directionalLight 
+              position={[2, 2, 1]} 
+              intensity={0.8}
+              castShadow
+            />
+            <pointLight position={[0, 2, 2]} intensity={0.4} />
+
+            {/* Companion - smaller scale */}
+            <group scale={0.7}>
+              <CompanionModel />
+            </group>
+          </Canvas>
+          
+          {/* Small energy indicator */}
+          <div className="absolute bottom-1 left-1 right-1">
+            <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-0.5">
+              <div 
+                className="bg-blue-500 dark:bg-blue-400 h-0.5 rounded-full transition-all duration-300"
+                style={{ width: `${companion.energy}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full h-40 bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 rounded-lg border border-blue-100 dark:border-gray-600">
+    <div className="relative w-full h-40 bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 rounded-lg border border-blue-100 dark:border-gray-600">
       <Canvas
         camera={{ position: [0, 0, 3], fov: 50 }}
         style={{ background: 'transparent' }}
@@ -187,6 +230,16 @@ export function CompanionCharacter() {
           />
         </div>
       </div>
+      
+      {/* Minimize button */}
+      {onToggleMinimize && (
+        <button
+          onClick={onToggleMinimize}
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+        >
+          <Minimize2 className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

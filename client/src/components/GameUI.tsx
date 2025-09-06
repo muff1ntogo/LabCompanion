@@ -28,6 +28,7 @@ import { SettingsPanel } from './SettingsPanel';
 export function GameUI() {
   const [activeTab, setActiveTab] = useState('protocols');
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isCompanionMinimized, setIsCompanionMinimized] = useState(false);
   const { playerScore, level, companion } = useQuests();
   const { isMuted, toggleMute } = useAudio();
 
@@ -164,9 +165,14 @@ export function GameUI() {
         {/* Sidebar - Desktop */}
         <aside className="hidden md:flex w-80 bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex-col">
           {/* Companion */}
-          <div className="p-4 border-b">
-            <CompanionCharacter />
-          </div>
+          {!isCompanionMinimized && (
+            <div className="p-4 border-b">
+              <CompanionCharacter 
+                isMinimized={false}
+                onToggleMinimize={() => setIsCompanionMinimized(true)}
+              />
+            </div>
+          )}
 
           {/* Navigation */}
           <nav className="flex-1 p-4">
@@ -190,9 +196,14 @@ export function GameUI() {
         {/* Main Content */}
         <main className="flex-1 overflow-hidden">
           {/* Mobile Companion */}
-          <div className="md:hidden p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-            <CompanionCharacter />
-          </div>
+          {!isCompanionMinimized && (
+            <div className="md:hidden p-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700">
+              <CompanionCharacter 
+                isMinimized={false}
+                onToggleMinimize={() => setIsCompanionMinimized(true)}
+              />
+            </div>
+          )}
 
           {/* Content Area */}
           <div className="h-full overflow-auto">
@@ -230,6 +241,12 @@ export function GameUI() {
           ))}
         </div>
       </nav>
+
+      {/* Minimized Companion */}
+      <CompanionCharacter 
+        isMinimized={isCompanionMinimized}
+        onToggleMinimize={() => setIsCompanionMinimized(false)}
+      />
     </div>
   );
 }
