@@ -495,8 +495,8 @@ const ProtocolBuilder: React.FC = () => {
           {/* Back button top left */}
           <div className="absolute left-4 top-[72px] z-40">
             <Button
-              className="bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
-              style={{ minWidth: 40, minHeight: 40 }}
+              className="absolute left-4 top-0 bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
+              style={{ minWidth: 40, minHeight: 40, transform: 'translateY(8px)' }}
               onClick={() => {
                 setEditMode(false);
                 setViewMode('build'); // Go back to protocol library
