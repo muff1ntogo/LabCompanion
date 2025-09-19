@@ -156,8 +156,7 @@ const ProtocolBuilder: React.FC = () => {
       });
       addJournalLog(log);
       updateQuestProgress('quest-protocol-1', 1);
-      stopBuilding();
-      setViewMode('run');
+      // Do NOT exit or change view mode after saving
     }
   };
 
@@ -493,12 +492,35 @@ const ProtocolBuilder: React.FC = () => {
           </div>
           {/* Widget Popup Menu */}
           {renderWidgetPopup()}
-          {/* Edit/Save Button at bottom right */}
+          {/* Back button top left */}
+          <Button
+            className="fixed top-4 left-4 z-50 bg-white text-gray-700 dark:text-white rounded-full shadow-lg p-2 hover:text-blue-500"
+            onClick={() => setViewMode('build')}
+            aria-label="Back"
+            size="icon"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </Button>
+
+          {/* Plus button to add widgets bottom right */}
+          {isBuilding && (
+            <Button
+              onClick={() => setShowWidgetPopover(true)}
+              className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-green-600 text-white"
+              size="icon"
+              aria-label="Add Widget"
+            >
+              <Plus className="w-6 h-6" />
+            </Button>
+          )}
+
+          {/* Edit/Save button bottom left */}
           {isBuilding && !editMode && (
             <Button
               onClick={() => setEditMode(true)}
-              className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full"
+              className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
               size="icon"
+              aria-label="Edit"
             >
               <Edit className="w-6 h-6" />
             </Button>
@@ -506,8 +528,9 @@ const ProtocolBuilder: React.FC = () => {
           {isBuilding && editMode && (
             <Button
               onClick={handleSaveProtocol}
-              className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-blue-600 text-white"
+              className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
               size="icon"
+              aria-label="Save"
             >
               <Save className="w-6 h-6" />
             </Button>
