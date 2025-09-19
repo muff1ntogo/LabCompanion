@@ -89,5 +89,43 @@ The basic user schema is implemented with username/password fields, prepared for
 - **React DND HTML5 Backend**: HTML5 drag and drop backend
 - **React DND Touch Backend**: Touch-friendly drag and drop for mobile devices
 
+
 ## Audio and Media
 The application includes audio management capabilities for background music and sound effects, with support for various audio formats (MP3, OGG, WAV) and 3D model files (GLTF, GLB).
+
+# Journalling Feature (AI Agent Guidance)
+
+## Purpose
+Implement a journalling function that logs daily lab activities in a text format. Each journal entry should:
+- Be time and date stamped as a header for each day
+- Log all protocols run, including detailed steps taken
+- Be easily accessible and navigable in the UI
+- Support exporting the journal as plain text for use on other platforms
+
+## Implementation Guidance
+- Store journal entries in a structured format (e.g., per-day text files or a database table with date keys)
+- When a protocol is run, append its name and all steps taken to the current day's journal entry
+- Ensure each day's entry starts with a clear timestamp header (e.g., `## 2025-09-19`)
+- Provide a UI component for users to view, search, and navigate journal entries by date
+- Add an export function to download journal entries as `.txt` files
+- Use existing state management (Zustand) to trigger journal updates when protocols are executed
+- Example journal entry:
+	```
+	## 2025-09-19
+	Protocol: DNA Extraction
+	Steps:
+		1. Prepare reagents
+		2. Add sample to tube
+		3. Centrifuge for 5 min
+		...
+	Protocol: PCR Amplification
+	Steps:
+		1. Mix primers
+		2. Run thermal cycler
+		...
+	```
+
+## Conventions
+- Journal entries should be plain text, with clear section headers and step lists
+- Exported files must preserve formatting for easy copy-paste
+- Keep journalling logic modular for future extension (e.g., rich text, cloud sync)
