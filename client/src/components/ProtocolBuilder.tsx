@@ -439,29 +439,27 @@ export function ProtocolBuilder() {
           </div>
         </div>
       ) : (
-        <>
-          <DropZone onDrop={(type, position) => handleAddWidget(type, position)}>
+        <div className="h-full overflow-y-auto p-4">
+          <div className="max-w-4xl mx-auto space-y-6">
             {currentProtocol?.widgets.map((widget) => (
-              <PlacedWidget
-                key={widget.id}
-                widget={widget}
-                onMove={moveWidget}
-                onRemove={removeWidget}
-                onUpdate={updateWidget}
-              >
+              <Card key={widget.id} className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
+                  <Badge variant={widget.completed ? 'default' : 'secondary'}>
+                    {widget.completed ? 'Completed' : 'Pending'}
+                  </Badge>
+                </div>
                 {renderWidget(widget)}
-              </PlacedWidget>
+              </Card>
             ))}
             {currentProtocol?.widgets.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-gray-400">
+              <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
                 Click the + button to add widgets and build your protocol
               </div>
             )}
-          </DropZone>
-          
+          </div>
           {/* Widget Popup Menu */}
           {renderWidgetPopup()}
-          
           {/* Save Button */}
           {isBuilding && (
             <Button
@@ -473,7 +471,7 @@ export function ProtocolBuilder() {
               <span className="hidden sm:inline">Save Protocol</span>
             </Button>
           )}
-        </>
+        </div>
       )}
     </div>
   );
