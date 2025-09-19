@@ -13,7 +13,8 @@ import {
   X,
   Settings,
   Volume2,
-  VolumeX
+  VolumeX,
+  StickyNote
 } from 'lucide-react';
 import { ProtocolBuilder } from './ProtocolBuilder';
 import { TimerManager } from './TimerManager';
@@ -21,6 +22,7 @@ import { ChecklistManager } from './ChecklistManager';
 import { QuestSystem } from './QuestSystem';
 import { CompanionCharacter } from './CompanionCharacter';
 import { CompanionPage } from './CompanionPage';
+import { JournalViewer } from './JournalViewer';
 import { useQuests } from '@/lib/stores/useQuests';
 import { useAudio } from '@/lib/stores/useAudio';
 import { cn } from '@/lib/utils';
@@ -63,6 +65,12 @@ export function GameUI() {
       label: 'Companion',
       icon: <Heart className="w-4 h-4" />,
       component: <CompanionPage />
+    },
+    {
+      id: 'journal',
+      label: 'Journal',
+      icon: <StickyNote className="w-4 h-4" />,
+      component: <JournalViewer />
     }
   ];
 

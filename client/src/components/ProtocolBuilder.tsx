@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProtocol } from '@/lib/stores/useProtocol';
 import { useQuests } from '@/lib/stores/useQuests';
+import { useJournal } from '@/lib/stores/useJournal';
 import { DragDropProvider, WidgetItem, DropZone, PlacedWidget } from './DragDropWidget';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ export function ProtocolBuilder() {
     stopBuilding,
     loadFromStorage
   } = useProtocol();
+  const addJournalLog = useJournal((state: any) => state.addLog);
   
   const { updateQuestProgress } = useQuests();
   
@@ -118,6 +120,12 @@ export function ProtocolBuilder() {
   const handleSaveProtocol = () => {
     if (currentProtocol) {
       saveProtocol(currentProtocol);
+      // Log protocol run to journal
+      let log = `Protocol: ${currentProtocol.name}\nSteps:`;
+      currentProtocol.widgets?.forEach((widget: any, idx: number) => {
+        log += `\n  ${idx + 1}. ${widget.title || widget.type}`;
+      });
+      addJournalLog(log);
       updateQuestProgress('quest-protocol-1', 1);
       stopBuilding();
       setViewMode('run');
