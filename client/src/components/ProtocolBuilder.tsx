@@ -493,15 +493,23 @@ const ProtocolBuilder: React.FC = () => {
           </div>
           {/* Widget Popup Menu */}
           {renderWidgetPopup()}
-          {/* Save Button */}
-          {isBuilding && (
+          {/* Edit/Save Button at bottom right */}
+          {isBuilding && !editMode && (
+            <Button
+              onClick={() => setEditMode(true)}
+              className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full"
+              size="icon"
+            >
+              <Edit className="w-6 h-6" />
+            </Button>
+          )}
+          {isBuilding && editMode && (
             <Button
               onClick={handleSaveProtocol}
-              className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6"
-              size="sm"
+              className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-blue-600 text-white"
+              size="icon"
             >
-              <Save className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Save Protocol</span>
+              <Save className="w-6 h-6" />
             </Button>
           )}
         </div>
