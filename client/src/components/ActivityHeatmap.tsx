@@ -15,9 +15,12 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), month, onDate
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+  // Bimontly logic: show two consecutive months
   const currentMonth = typeof month === 'number' ? month : new Date().getMonth();
+  const nextMonth = (currentMonth + 1) % 12;
+  const nextMonthYear = nextMonth === 0 ? year + 1 : year;
   const startDate = startOfMonth(new Date(year, currentMonth, 1));
-  const endDate = endOfMonth(new Date(year, currentMonth, 1));
+  const endDate = endOfMonth(new Date(nextMonthYear, nextMonth, 1));
   const allDays = eachDayOfInterval({ start: startDate, end: endDate });
   const daysWithActivity = allDays.map(day => {
     const dateKey = format(day, 'yyyy-MM-dd');
@@ -82,22 +85,25 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), month, onDate
   };
 
   const totalContributions = daysWithActivity.filter(day => day.hasEntry).length;
+  // For header and selector
+  const bimontlyLabel = `${monthNames[currentMonth]}-${monthNames[nextMonth]} ${year}${nextMonth === 0 ? `/${year + 1}` : ''}`;
 
   return (
     <div className="w-full">
-      {/* Header with month/year selectors */}
+      {/* Header with bimontly selectors */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-          {totalContributions} research sessions in {monthNames[currentMonth]} {year}
+          {totalContributions} research sessions in {bimontlyLabel}
         </h3>
         <div className="flex items-center gap-2">
+          {/* Bimontly selector: Jan-Feb, Feb-Mar, ... */}
           <select
             value={currentMonth}
-            onChange={e => onDateClick && onDateClick('month:' + e.target.value)}
+            onChange={e => onDateClick && onDateClick('bimontly:' + e.target.value)}
             className="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs"
           >
             {monthNames.map((name, idx) => (
-              <option key={name} value={idx}>{name}</option>
+              <option key={name} value={idx}>{`${name}-${monthNames[(idx+1)%12]}`}</option>
             ))}
           </select>
           <select
