@@ -520,6 +520,29 @@ const ProtocolBuilder: React.FC = () => {
             </Button>
           )}
 
+          {/* Widget Popup Menu - render outside grid for overlay */}
+          <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
+            <PopoverContent className="w-64 p-3" side="top" align="end">
+              <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
+                  <Button
+                    key={type}
+                    variant="ghost"
+                    className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => {
+                      handleAddWidget(type);
+                      setShowWidgetPopover(false);
+                    }}
+                  >
+                    {getWidgetIcon(type)}
+                    <span className="text-xs">{getWidgetLabel(type)}</span>
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
           {/* Edit/Save button bottom left */}
           {isBuilding && !editMode && (
             <Button
