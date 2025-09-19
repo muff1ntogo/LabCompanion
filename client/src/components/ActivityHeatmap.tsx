@@ -65,7 +65,7 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), month, onDate
   }
   const allDaysWithPadding = [...paddedDays, ...daysWithActivity];
   // Group into weeks
-  const weeks = [];
+  const weeks: Array<typeof allDaysWithPadding> = [];
   for (let i = 0; i < allDaysWithPadding.length; i += 7) {
     weeks.push(allDaysWithPadding.slice(i, i + 7));
   }
@@ -125,16 +125,17 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), month, onDate
       </div>
       {/* Calendar Grid */}
       <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
-        <div className="grid gap-px min-w-[320px]" style={{
-          gridTemplateColumns: `repeat(${weeks.length}, 1.5rem)`,
-          gridTemplateRows: 'repeat(7, 1.5rem)'
+        <div className="grid min-w-[320px]" style={{
+          gridTemplateColumns: `auto repeat(${weeks.length}, 1.5rem)`,
+          gridTemplateRows: 'repeat(7, 1.5rem)',
+          gap: '4px'
         }}>
           {/* Day labels column */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
             <div
               key={day}
               className="text-xs text-gray-600 dark:text-gray-300 flex items-center justify-end pr-2"
-              style={{ gridColumn: 1, gridRow: 1 + index }}
+              style={{ gridColumn: 1, gridRow: 1 + index, zIndex: 2 }}
             >
               {day}
             </div>
@@ -145,7 +146,7 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), month, onDate
               <button
                 key={`${weekIndex}-${dayIndex}`}
                 className={`rounded-sm transition-all hover:ring-1 hover:ring-blue-400 ${getActivityColor(day.activityLevel)} ${selectedDate === day.dateKey ? 'ring-2 ring-blue-500' : ''} ${day.isPadding ? 'opacity-0' : ''}`}
-                style={{ gridColumn: 1 + weekIndex, gridRow: 1 + dayIndex }}
+                style={{ gridColumn: 2 + weekIndex, gridRow: 1 + dayIndex, margin: '2px', zIndex: 1 }}
                 title={`${format(day.date, 'MMM d, yyyy')}: ${day.logCount} entries`}
                 onClick={() => !day.isPadding && onDateClick?.(day.dateKey)}
                 disabled={day.isPadding}
