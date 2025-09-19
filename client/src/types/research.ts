@@ -1,6 +1,6 @@
 export interface ProtocolWidget {
   id: string;
-  type: 'timer' | 'pattern' | 'measurement' | 'pcr' | 'storage';
+  type: 'timer' | 'pattern' | 'measurement' | 'pcr' | 'storage' | 'dilution';
   title: string;
   config: Record<string, any>;
   position: { x: number; y: number };
