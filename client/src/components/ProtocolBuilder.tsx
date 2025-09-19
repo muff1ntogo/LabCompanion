@@ -450,232 +450,134 @@ const ProtocolBuilder: React.FC = () => {
   // Editor State - Active protocol editing with full-width canvas
   const renderEditorState = () => (
   <div className="flex-1 relative overflow-hidden">
-      {viewMode === 'run' && currentProtocol ? (
-        <RunProtocolPage protocolId={currentProtocol.id} onExit={() => setViewMode('build')} />
-      ) : (
-        <div className="h-full overflow-y-auto p-4 flex flex-col">
-          {/* Back button top left */}
-          <div className="flex items-center mb-4" style={{ position: 'relative', top: 0, left: 0, zIndex: 40 }}>
-            <Button
-              className="bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
-              style={{ minWidth: 40, minHeight: 40 }}
-              onClick={() => {
-                setEditMode(false);
-                stopBuilding(); // Go back to protocol library
-              }}
-              aria-label="Back"
-              size="icon"
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-            </Button>
-          </div>
-          <div className="flex-1 flex flex-col justify-center items-center">
-            <div className="max-w-4xl w-full space-y-6">
-              {currentProtocol?.widgets.map((widget) => (
-                <div
-                  key={widget.id}
-                  className="relative"
-                  onTouchStart={e => handleTouchStart(e, widget.id)}
-                  onTouchMove={e => handleTouchMove(e, widget.id)}
-                  onTouchEnd={() => handleTouchEnd(widget.id)}
-                >
-                  <Card className={`p-4 transition-all ${swipedWidgetId === widget.id ? 'translate-x-20 bg-red-100' : ''}`}> 
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
-                      <Badge variant={widget.completed ? 'default' : 'secondary'}>
-                        {widget.completed ? 'Completed' : 'Pending'}
-                      </Badge>
-                    </div>
-                    {renderWidget(widget)}
-                    {editMode && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={() => removeWidget(widget.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                    {swipedWidgetId === widget.id && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2 animate-bounce"
-                        onClick={() => removeWidget(widget.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </Card>
-                </div>
-              ))}
-              {currentProtocol?.widgets.length === 0 && (
-                <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 h-full min-h-[200px]">
-                  Click the + button to add widgets and build your protocol
-                </div>
-              )}
-            </div>
-          </div>
-          {/* Plus button to add widgets bottom right */}
-          {isBuilding && (
-            <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
-              <PopoverTrigger asChild>
-                <Button
-                  className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-green-600 text-white"
-                  size="icon"
-                  aria-label="Add Widget"
-                >
-                  <Plus className="w-6 h-6" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-3" side="top" align="end">
-                <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
-                    <Button
-                      key={type}
-                      variant="ghost"
-                      className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => {
-                        setShowWidgetPopover(false);
-                        if (type === 'timer') setShowTimerConfig(true);
-                        else if (type === 'pattern') setShowPatternConfig(true);
-                        else if (type === 'measurement') setShowMeasurementConfig(true);
-                        else if (type === 'pcr') setShowPCRConfig(true);
-                        else if (type === 'storage') setShowStorageConfig(true);
-                      }}
-                    >
-                      {getWidgetIcon(type)}
-                      <span className="text-xs">{getWidgetLabel(type)}</span>
-                    </Button>
-      {/* Pattern Config Dialog */}
-      <Dialog open={showPatternConfig} onOpenChange={setShowPatternConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Protocol Pattern</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Repeat Count</label>
-            <Input type="number" min={1} value={patternConfig.repeatCount} onChange={e => setPatternConfig({ ...patternConfig, repeatCount: Number(e.target.value) })} />
-            {/* Steps editing UI can be added here */}
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowPatternConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'pattern', title: 'Protocol Pattern', config: patternConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowPatternConfig(false);
-              setPatternConfig({ steps: [], repeatCount: 1 });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Measurement Config Dialog */}
-      <Dialog open={showMeasurementConfig} onOpenChange={setShowMeasurementConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Measurement</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Target</label>
-            <Input type="number" value={measurementConfig.target} onChange={e => setMeasurementConfig({ ...measurementConfig, target: Number(e.target.value) })} />
-            <label className="block text-sm">Unit</label>
-            <Input value={measurementConfig.unit} onChange={e => setMeasurementConfig({ ...measurementConfig, unit: e.target.value })} />
-            <label className="block text-sm">Tolerance</label>
-            <Input type="number" value={measurementConfig.tolerance} onChange={e => setMeasurementConfig({ ...measurementConfig, tolerance: Number(e.target.value) })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowMeasurementConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'measurement', title: 'Measurement', config: measurementConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowMeasurementConfig(false);
-              setMeasurementConfig({ unit: 'ml', target: 1, tolerance: 0.1 });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* PCR Config Dialog */}
-      <Dialog open={showPCRConfig} onOpenChange={setShowPCRConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add PCR Cycle</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Cycles</label>
-            <Input type="number" value={pcrConfig.cycles} onChange={e => setPCRConfig({ ...pcrConfig, cycles: Number(e.target.value) })} />
-            <label className="block text-sm">Denaturation (°C)</label>
-            <Input type="number" value={pcrConfig.denaturation} onChange={e => setPCRConfig({ ...pcrConfig, denaturation: Number(e.target.value) })} />
-            <label className="block text-sm">Annealing (°C)</label>
-            <Input type="number" value={pcrConfig.annealing} onChange={e => setPCRConfig({ ...pcrConfig, annealing: Number(e.target.value) })} />
-            <label className="block text-sm">Extension (°C)</label>
-            <Input type="number" value={pcrConfig.extension} onChange={e => setPCRConfig({ ...pcrConfig, extension: Number(e.target.value) })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowPCRConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'pcr', title: 'PCR Cycle', config: pcrConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowPCRConfig(false);
-              setPCRConfig({ cycles: 30, denaturation: 95, annealing: 55, extension: 72 });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Storage Config Dialog */}
-      <Dialog open={showStorageConfig} onOpenChange={setShowStorageConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Storage</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Temperature (°C)</label>
-            <Input type="number" value={storageConfig.temperature} onChange={e => setStorageConfig({ ...storageConfig, temperature: Number(e.target.value) })} />
-            <label className="block text-sm">Location</label>
-            <Input value={storageConfig.location} onChange={e => setStorageConfig({ ...storageConfig, location: e.target.value })} />
-            <label className="block text-sm">Duration</label>
-            <Input value={storageConfig.duration} onChange={e => setStorageConfig({ ...storageConfig, duration: e.target.value })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowStorageConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'storage', title: 'Storage', config: storageConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowStorageConfig(false);
-              setStorageConfig({ temperature: -20, location: 'Freezer A', duration: '24 hours' });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-          {/* Edit/Save button bottom left */}
-          {isBuilding && !editMode && (
-            <Button
-              onClick={() => setEditMode(true)}
-              className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
-              size="icon"
-              aria-label="Edit"
-            >
-              <Edit className="w-6 h-6" />
-            </Button>
-          )}
-          {isBuilding && editMode && (
-            <Button
-              onClick={handleSaveProtocol}
-              className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
-              size="icon"
-              aria-label="Save"
-            >
-              <Save className="w-6 h-6" />
-            </Button>
-          )}
+    {viewMode === 'run' && currentProtocol ? (
+      <RunProtocolPage protocolId={currentProtocol.id} onExit={() => setViewMode('build')} />
+    ) : (
+      <div className="h-full overflow-y-auto p-4 flex flex-col">
+        {/* Back button top left */}
+        <div className="flex items-center mb-4" style={{ position: 'relative', top: 0, left: 0, zIndex: 40 }}>
+          <Button
+            className="bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
+            style={{ minWidth: 40, minHeight: 40 }}
+            onClick={() => {
+              setEditMode(false);
+              stopBuilding(); // Go back to protocol library
+            }}
+            aria-label="Back"
+            size="icon"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+          </Button>
         </div>
-      )}
-    </div>
+        <div className="flex-1 flex flex-col justify-center items-center">
+          <div className="max-w-4xl w-full space-y-6">
+            {currentProtocol?.widgets.map((widget) => (
+              <div
+                key={widget.id}
+                className="relative"
+                onTouchStart={e => handleTouchStart(e, widget.id)}
+                onTouchMove={e => handleTouchMove(e, widget.id)}
+                onTouchEnd={() => handleTouchEnd(widget.id)}
+              >
+                <Card className={`p-4 transition-all ${swipedWidgetId === widget.id ? 'translate-x-20 bg-red-100' : ''}`}> 
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
+                    <Badge variant={widget.completed ? 'default' : 'secondary'}>
+                      {widget.completed ? 'Completed' : 'Pending'}
+                    </Badge>
+                  </div>
+                  {renderWidget(widget)}
+                  {editMode && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => removeWidget(widget.id)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                  {swipedWidgetId === widget.id && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 animate-bounce"
+                      onClick={() => removeWidget(widget.id)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </Card>
+              </div>
+            ))}
+            {currentProtocol?.widgets.length === 0 && (
+              <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 h-full min-h-[200px]">
+                Click the + button to add widgets and build your protocol
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Plus button to add widgets bottom right */}
+        {isBuilding && (
+          <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
+            <PopoverTrigger asChild>
+              <Button
+                className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-green-600 text-white"
+                size="icon"
+                aria-label="Add Widget"
+              >
+                <Plus className="w-6 h-6" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-3" side="top" align="end">
+              <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
+                  <Button
+                    key={type}
+                    variant="ghost"
+                    className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={() => {
+                      setShowWidgetPopover(false);
+                      if (type === 'timer') setShowTimerConfig(true);
+                      else if (type === 'pattern') setShowPatternConfig(true);
+                      else if (type === 'measurement') setShowMeasurementConfig(true);
+                      else if (type === 'pcr') setShowPCRConfig(true);
+                      else if (type === 'storage') setShowStorageConfig(true);
+                    }}
+                  >
+                    {getWidgetIcon(type)}
+                    <span className="text-xs">{getWidgetLabel(type)}</span>
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+        {/* Edit/Save button bottom left */}
+        {isBuilding && !editMode && (
+          <Button
+            onClick={() => setEditMode(true)}
+            className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
+            size="icon"
+            aria-label="Edit"
+          >
+            <Edit className="w-6 h-6" />
+          </Button>
+        )}
+        {isBuilding && editMode && (
+          <Button
+            onClick={handleSaveProtocol}
+            className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
+            size="icon"
+            aria-label="Save"
+          >
+            <Save className="w-6 h-6" />
+          </Button>
+        )}
+      </div>
+    )}
+  </div>
   );
 
   // Function to render the main protocol content based on state
@@ -890,5 +792,8 @@ const ProtocolBuilder: React.FC = () => {
         </div>
       </DialogContent>
     </Dialog>
+
   </>;
+}
+
 export { ProtocolBuilder };
