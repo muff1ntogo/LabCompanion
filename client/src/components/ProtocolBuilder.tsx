@@ -411,14 +411,18 @@ const ProtocolBuilder: React.FC = () => {
         <PopoverContent className="w-64 p-3" side="top" align="end">
           <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
           <div className="grid grid-cols-2 gap-2">
-            {widgetTypes.map((type) => (
+            {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
               <Button
                 key={type}
                 variant="ghost"
                 className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={() => {
-                  handleAddWidget(type);
                   setShowWidgetPopover(false);
+                  if (type === 'timer') setShowTimerConfig(true);
+                  else if (type === 'pattern') setShowPatternConfig(true);
+                  else if (type === 'measurement') setShowMeasurementConfig(true);
+                  else if (type === 'pcr') setShowPCRConfig(true);
+                  else if (type === 'storage') setShowStorageConfig(true);
                 }}
               >
                 {getWidgetIcon(type)}
