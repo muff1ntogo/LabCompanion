@@ -25,8 +25,9 @@ import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X, FlaskConical, T
 import { ProtocolWidget } from '@/types/research';
 import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
+import { RunProtocolPage } from './RunProtocolPage';
 
-export function ProtocolBuilder() {
+const ProtocolBuilder: React.FC = () => {
   const {
     protocols,
     currentProtocol,
@@ -56,7 +57,9 @@ export function ProtocolBuilder() {
   const [timerAutoStart, setTimerAutoStart] = useState(false);
   const [pendingTimerPosition, setPendingTimerPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [viewMode, setViewMode] = useState<'build' | 'run'>('build');
+  const [showRunPage, setShowRunPage] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // Determine the current state
   const getProtocolBuilderState = () => {
@@ -419,38 +422,68 @@ export function ProtocolBuilder() {
     );
   };
 
+  // Swipe-to-delete logic
+  const [swipedWidgetId, setSwipedWidgetId] = useState<string | null>(null);
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>, id: string) => {
+    (e.currentTarget as HTMLDivElement).dataset.touchStartX = String(e.touches[0].clientX);
+  };
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>, id: string) => {
+    const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchStartX);
+    const currentX = e.touches[0].clientX;
+    if (currentX - startX > 60) {
+      setSwipedWidgetId(id);
+    }
+  };
+  const handleTouchEnd = (id: string) => {
+    setTimeout(() => setSwipedWidgetId(null), 1500);
+  };
+
   // Editor State - Active protocol editing with full-width canvas
   const renderEditorState = () => (
     <div className="flex-1 relative overflow-hidden">
-      {viewMode === 'run' ? (
-        <div className="h-full overflow-y-auto p-4">
-          <div className="max-w-4xl mx-auto space-y-6">
-            {currentProtocol?.widgets.map((widget) => (
-              <Card key={widget.id} className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
-                  <Badge variant={widget.completed ? 'default' : 'secondary'}>
-                    {widget.completed ? 'Completed' : 'Pending'}
-                  </Badge>
-                </div>
-                {renderWidget(widget)}
-              </Card>
-            ))}
-          </div>
-        </div>
+      {viewMode === 'run' && currentProtocol ? (
+        <RunProtocolPage protocolId={currentProtocol.id} onExit={() => setViewMode('build')} />
       ) : (
         <div className="h-full overflow-y-auto p-4">
           <div className="max-w-4xl mx-auto space-y-6">
             {currentProtocol?.widgets.map((widget) => (
-              <Card key={widget.id} className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
-                  <Badge variant={widget.completed ? 'default' : 'secondary'}>
-                    {widget.completed ? 'Completed' : 'Pending'}
-                  </Badge>
-                </div>
-                {renderWidget(widget)}
-              </Card>
+              <div
+                key={widget.id}
+                className="relative"
+                onTouchStart={e => handleTouchStart(e, widget.id)}
+                onTouchMove={e => handleTouchMove(e, widget.id)}
+                onTouchEnd={() => handleTouchEnd(widget.id)}
+              >
+                <Card className={`p-4 transition-all ${swipedWidgetId === widget.id ? 'translate-x-20 bg-red-100' : ''}`}> 
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
+                    <Badge variant={widget.completed ? 'default' : 'secondary'}>
+                      {widget.completed ? 'Completed' : 'Pending'}
+                    </Badge>
+                  </div>
+                  {renderWidget(widget)}
+                  {editMode && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2"
+                      onClick={() => removeWidget(widget.id)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                  {swipedWidgetId === widget.id && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 animate-bounce"
+                      onClick={() => removeWidget(widget.id)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </Card>
+              </div>
             ))}
             {currentProtocol?.widgets.length === 0 && (
               <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
@@ -490,168 +523,6 @@ export function ProtocolBuilder() {
     }
   };
 
-  // Show full-screen version on mobile if enabled
-  if (isFullScreen) {
-    return (
-      <DragDropProvider>
-        <FullScreenProtocolBuilder />
-      </DragDropProvider>
-    );
-  }
-
-  return (
-    <DragDropProvider>
-      <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-3 sm:p-4">
-          <div className="flex flex-col gap-3">
-            {/* Title and main actions */}
-            <div className="flex items-center justify-between">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Protocol Builder</h1>
-              
-              {/* Create button - always visible */}
-              <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="flex-shrink-0">
-                    <Plus className="w-4 h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">New Protocol</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Create New Protocol</DialogTitle>
-                    <DialogDescription>
-                      Create a new research protocol with custom widgets and settings.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <Input
-                      placeholder="Protocol name"
-                      value={newProtocolName}
-                      onChange={(e) => setNewProtocolName(e.target.value)}
-                    />
-                    <Textarea
-                      placeholder="Protocol description"
-                      value={newProtocolDescription}
-                      onChange={(e) => setNewProtocolDescription(e.target.value)}
-                      rows={3}
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handleCreateProtocol}>
-                        Create
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-              
-              {/* Timer Configuration Dialog */}
-              <Dialog open={showTimerConfig} onOpenChange={setShowTimerConfig}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Configure Timer</DialogTitle>
-                    <DialogDescription>
-                      Set up your timer duration and options.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-900 dark:text-white">
-                        Duration (minutes)
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="5"
-                        value={Math.floor(timerDuration / 60)}
-                        onChange={(e) => setTimerDuration(parseInt(e.target.value || '5') * 60)}
-                        min="1"
-                        max="480"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="autoStart"
-                        checked={timerAutoStart}
-                        onChange={(e) => setTimerAutoStart(e.target.checked)}
-                        className="w-4 h-4"
-                      />
-                      <label htmlFor="autoStart" className="text-sm text-gray-900 dark:text-white">
-                        Auto-start timer when protocol runs
-                      </label>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" onClick={() => setShowTimerConfig(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handleCreateTimer}>
-                        <Timer className="w-4 h-4 mr-2" />
-                        Add Timer
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Protocol controls and state - when protocol is selected */}
-            {currentProtocol && (
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <Badge variant="outline" className="text-xs flex-shrink-0">
-                    Editing Protocol
-                  </Badge>
-                  <Badge variant="default" className="text-xs truncate max-w-32">
-                    {currentProtocol.name}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <Button
-                    variant={viewMode === 'build' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setViewMode('build');
-                      startBuilding();
-                    }}
-                  >
-                    <Edit className="w-4 h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Build</span>
-                  </Button>
-                  <Button
-                    variant={viewMode === 'run' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => {
-                      setViewMode('run');
-                      stopBuilding();
-                    }}
-                  >
-                    <Eye className="w-4 h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Run</span>
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* State indicator for non-editor states */}
-            {protocolState !== 'editor' && (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  {protocolState === 'empty' && 'No Protocols'}
-                  {protocolState === 'library' && `${protocols.length} Protocols`}
-                </Badge>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 flex overflow-hidden">
-          {renderProtocolContent()}
-        </div>
-      </div>
-    </DragDropProvider>
-  );
+  return renderProtocolContent();
 }
+export { ProtocolBuilder };
