@@ -1,114 +1,74 @@
 import React, { useMemo } from 'react';
-import { format, startOfYear, endOfYear, eachDayOfInterval, getDay, addDays, subDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addDays, subDays } from 'date-fns';
 import { useJournal } from '@/lib/stores/useJournal';
 
 interface ActivityHeatmapProps {
   year?: number;
+  month?: number;
   onDateClick?: (date: string) => void;
   selectedDate?: string;
 }
 
-export function ActivityHeatmap({ year = new Date().getFullYear(), onDateClick, selectedDate }: ActivityHeatmapProps) {
+export function ActivityHeatmap({ year = new Date().getFullYear(), month, onDateClick, selectedDate }: ActivityHeatmapProps) {
   const entries = useJournal((state) => state.entries);
-
-  const { days, weeks, monthLabels } = useMemo(() => {
-    const startDate = startOfYear(new Date(year, 0, 1));
-    const endDate = endOfYear(new Date(year, 0, 1));
-    
-    // Get all days in the year
-    const allDays = eachDayOfInterval({ start: startDate, end: endDate });
-    
-    // Calculate activity levels for each day
-    const daysWithActivity = allDays.map(day => {
-      const dateKey = format(day, 'yyyy-MM-dd');
-      const entry = entries[dateKey];
-      
-      // Calculate activity level based on log count, content, and actual time spent
-      let activityLevel = 0;
-      if (entry && entry.logs.length > 0) {
-        // Base activity on number of logs and their content length
-        const logCount = entry.logs.length;
-        const totalContent = entry.logs.join('').length;
-        
-        // Extract time spent from timer completion logs
-        let totalTimeSpent = 0;
-        entry.logs.forEach(log => {
-          const timerMatch = log.match(/Timer completed:.*\((\d+) minutes\)/);
-          if (timerMatch) {
-            totalTimeSpent += parseInt(timerMatch[1]);
-          }
-        });
-        
-        // Enhanced activity calculation: logs + content + actual time spent
-        const activity = logCount + (totalContent / 100) + (totalTimeSpent / 15); // 15 min = 1 activity point
-        
-        if (activity <= 2) activityLevel = 1;      // Light activity
-        else if (activity <= 5) activityLevel = 2; // Medium activity  
-        else if (activity <= 10) activityLevel = 3; // High activity
-        else activityLevel = 4;                     // Very high activity
-      }
-      
-      return {
-        date: day,
-        dateKey,
-        activityLevel,
-        hasEntry: !!entry,
-        logCount: entry?.logs.length || 0,
-        isPadding: false
-      };
-    });
-
-    // Pad the start to align with Sunday (if needed)
-    const firstDay = daysWithActivity[0];
-    const firstDayOfWeek = getDay(firstDay.date);
-    const paddedDays = [];
-    
-    // Add empty days at the start to align with Sunday
-    for (let i = 0; i < firstDayOfWeek; i++) {
-      const paddedDate = subDays(firstDay.date, firstDayOfWeek - i);
-      paddedDays.push({
-        date: paddedDate,
-        dateKey: format(paddedDate, 'yyyy-MM-dd'),
-        activityLevel: 0,
-        hasEntry: false,
-        logCount: 0,
-        isPadding: true
-      });
-    }
-
-    const allDaysWithPadding = [...paddedDays, ...daysWithActivity];
-
-    // Group into weeks
-    const weeks = [];
-    for (let i = 0; i < allDaysWithPadding.length; i += 7) {
-      weeks.push(allDaysWithPadding.slice(i, i + 7));
-    }
-
-    // Generate month labels with proper positioning
-    const monthLabels: { label: string; weekIndex: number }[] = [];
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
-    // Find the first occurrence of each month in the weeks
-    let currentMonth = -1;
-    allDaysWithPadding.forEach((day, dayIndex) => {
-      if (!day.isPadding) {
-        const month = day.date.getMonth();
-        if (month !== currentMonth) {
-          currentMonth = month;
-          const weekIndex = Math.floor(dayIndex / 7);
-          monthLabels.push({
-            label: monthNames[month],
-            weekIndex
-          });
+  const monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  const currentMonth = typeof month === 'number' ? month : new Date().getMonth();
+  const startDate = startOfMonth(new Date(year, currentMonth, 1));
+  const endDate = endOfMonth(new Date(year, currentMonth, 1));
+  const allDays = eachDayOfInterval({ start: startDate, end: endDate });
+  const daysWithActivity = allDays.map(day => {
+    const dateKey = format(day, 'yyyy-MM-dd');
+    const entry = entries[dateKey];
+    let activityLevel = 0;
+    if (entry && entry.logs.length > 0) {
+      const logCount = entry.logs.length;
+      const totalContent = entry.logs.join('').length;
+      let totalTimeSpent = 0;
+      entry.logs.forEach(log => {
+        const timerMatch = log.match(/Timer completed:.*\((\d+) minutes\)/);
+        if (timerMatch) {
+          totalTimeSpent += parseInt(timerMatch[1]);
         }
-      }
+      });
+      const activity = logCount + (totalContent / 100) + (totalTimeSpent / 15);
+      if (activity <= 2) activityLevel = 1;
+      else if (activity <= 5) activityLevel = 2;
+      else if (activity <= 10) activityLevel = 3;
+      else activityLevel = 4;
+    }
+    return {
+      date: day,
+      dateKey,
+      activityLevel,
+      hasEntry: !!entry,
+      logCount: entry?.logs.length || 0,
+      isPadding: false
+    };
+  });
+  // Pad the start to align with Sunday (if needed)
+  const firstDay = daysWithActivity[0];
+  const firstDayOfWeek = getDay(firstDay.date);
+  const paddedDays = [];
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    const paddedDate = subDays(firstDay.date, firstDayOfWeek - i);
+    paddedDays.push({
+      date: paddedDate,
+      dateKey: format(paddedDate, 'yyyy-MM-dd'),
+      activityLevel: 0,
+      hasEntry: false,
+      logCount: 0,
+      isPadding: true
     });
-
-    return { days: daysWithActivity, weeks, monthLabels };
-  }, [entries, year]);
+  }
+  const allDaysWithPadding = [...paddedDays, ...daysWithActivity];
+  // Group into weeks
+  const weeks = [];
+  for (let i = 0; i < allDaysWithPadding.length; i += 7) {
+    weeks.push(allDaysWithPadding.slice(i, i + 7));
+  }
 
   const getActivityColor = (level: number) => {
     switch (level) {
@@ -121,15 +81,35 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), onDateClick, 
     }
   };
 
-  const totalContributions = days.filter(day => day.hasEntry).length;
+  const totalContributions = daysWithActivity.filter(day => day.hasEntry).length;
 
   return (
     <div className="w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Header with month/year selectors */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-          {totalContributions} research sessions in {year}
+          {totalContributions} research sessions in {monthNames[currentMonth]} {year}
         </h3>
+        <div className="flex items-center gap-2">
+          <select
+            value={currentMonth}
+            onChange={e => onDateClick && onDateClick('month:' + e.target.value)}
+            className="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs"
+          >
+            {monthNames.map((name, idx) => (
+              <option key={name} value={idx}>{name}</option>
+            ))}
+          </select>
+          <select
+            value={year}
+            onChange={e => onDateClick && onDateClick('year:' + e.target.value)}
+            className="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-xs"
+          >
+            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(yearOpt => (
+              <option key={yearOpt} value={yearOpt}>{yearOpt}</option>
+            ))}
+          </select>
+        </div>
         <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
           <span>Less</span>
           <div className="flex gap-1">
@@ -143,61 +123,29 @@ export function ActivityHeatmap({ year = new Date().getFullYear(), onDateClick, 
           <span>More</span>
         </div>
       </div>
-
       {/* Calendar Grid */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-        {/* Calendar with unified layout */}
-        <div className="grid gap-px" style={{ 
-          gridTemplateColumns: `auto 2px repeat(${weeks.length}, 0.625rem)`,
-          gridTemplateRows: 'auto 0.625rem repeat(7, 0.625rem)'
+      <div className="bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
+        <div className="grid gap-px min-w-[320px]" style={{
+          gridTemplateColumns: `repeat(${weeks.length}, 1.5rem)`,
+          gridTemplateRows: 'repeat(7, 1.5rem)'
         }}>
-          {/* Month labels row */}
-          {monthLabels.map((month) => (
-            <div
-              key={month.label}
-              className="text-xs text-gray-600 dark:text-gray-300 text-center flex items-center justify-center"
-              style={{
-                gridColumn: `${3 + month.weekIndex}`,
-                gridRow: 1
-              }}
-            >
-              {month.label}
-            </div>
-          ))}
-
-          {/* Empty cell for day labels column header */}
-          <div style={{ gridColumn: 1, gridRow: 2 }}></div>
-
           {/* Day labels column */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
             <div
               key={day}
               className="text-xs text-gray-600 dark:text-gray-300 flex items-center justify-end pr-2"
-              style={{
-                gridColumn: 1,
-                gridRow: 3 + index,
-                opacity: index % 2 === 1 ? 1 : 0 // Show only Mon, Wed, Fri (odd indices: 1, 3, 5)
-              }}
+              style={{ gridColumn: 1, gridRow: 1 + index }}
             >
-              {index % 2 === 1 ? day : ''}
+              {day}
             </div>
           ))}
-
           {/* Heatmap squares */}
           {weeks.map((week, weekIndex) =>
             week.map((day, dayIndex) => (
               <button
                 key={`${weekIndex}-${dayIndex}`}
-                className={`
-                  rounded-sm transition-all hover:ring-1 hover:ring-blue-400
-                  ${getActivityColor(day.activityLevel)}
-                  ${selectedDate === day.dateKey ? 'ring-2 ring-blue-500' : ''}
-                  ${day.isPadding ? 'opacity-0' : ''}
-                `}
-                style={{
-                  gridColumn: 3 + weekIndex,
-                  gridRow: 3 + dayIndex
-                }}
+                className={`rounded-sm transition-all hover:ring-1 hover:ring-blue-400 ${getActivityColor(day.activityLevel)} ${selectedDate === day.dateKey ? 'ring-2 ring-blue-500' : ''} ${day.isPadding ? 'opacity-0' : ''}`}
+                style={{ gridColumn: 1 + weekIndex, gridRow: 1 + dayIndex }}
                 title={`${format(day.date, 'MMM d, yyyy')}: ${day.logCount} entries`}
                 onClick={() => !day.isPadding && onDateClick?.(day.dateKey)}
                 disabled={day.isPadding}

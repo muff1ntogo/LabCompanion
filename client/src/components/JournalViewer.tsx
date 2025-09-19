@@ -10,11 +10,20 @@ import { Calendar, Download, BookOpen, Activity } from 'lucide-react';
 export const JournalViewer: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const entries = useJournal((state: any) => state.entries);
   const exportDay = useJournal((state: any) => state.exportDay);
   const dates = Object.keys(entries).sort().reverse();
 
   const handleDateClick = (date: string) => {
+    if (date.startsWith('month:')) {
+      setSelectedMonth(parseInt(date.split(':')[1]));
+      return;
+    }
+    if (date.startsWith('year:')) {
+      setSelectedYear(parseInt(date.split(':')[1]));
+      return;
+    }
     setSelectedDate(date);
   };
 
@@ -89,6 +98,7 @@ export const JournalViewer: React.FC = () => {
             
             <ActivityHeatmap
               year={selectedYear}
+              month={selectedMonth}
               onDateClick={handleDateClick}
               selectedDate={selectedDate}
             />
