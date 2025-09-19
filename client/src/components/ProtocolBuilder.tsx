@@ -553,9 +553,8 @@ const ProtocolBuilder: React.FC = () => {
               </div>
             </PopoverContent>
           </Popover>
-        )}
-        {/* Edit/Save button bottom left */}
-        {isBuilding && !editMode && (
+  )}
+  {isBuilding && !editMode && (
           <Button
             onClick={() => setEditMode(true)}
             className="fixed bottom-20 left-4 shadow-lg z-50 sm:bottom-6 sm:left-6 h-12 w-12 rounded-full bg-blue-600 text-white"
