@@ -495,7 +495,7 @@ const ProtocolBuilder: React.FC = () => {
             <PopoverContent className="w-64 p-3" side="top" align="end">
               <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
               <div className="grid grid-cols-2 gap-2">
-                {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
+                {(['timer', 'pattern', 'measurement', 'pcr', 'storage', 'dilution'] as ProtocolWidget['type'][]).map((type) => (
                   <Button
                     key={type}
                     variant="ghost"
