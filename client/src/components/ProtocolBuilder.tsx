@@ -24,6 +24,12 @@ import { ProtocolWidget } from '@/types/research';
 import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
 import { RunProtocolPage } from './RunProtocolPage';
+import MeasurementWidget from './protocol/MeasurementWidget';
+import DilutionWidget from './protocol/DilutionWidget';
+import PatternWidget from './protocol/PatternWidget';
+import PCRWidget from './protocol/PCRWidget';
+import StorageWidget from './protocol/StorageWidget';
+import TimerWidget from './protocol/TimerWidget';
 
 const ProtocolBuilder: React.FC = () => {
   // Dialog states and config for widget config
@@ -171,29 +177,16 @@ const ProtocolBuilder: React.FC = () => {
   const renderWidget = (widget: ProtocolWidget) => {
     switch (widget.type) {
       case 'timer':
-        // TimerWidget expects onComplete prop
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const TimerWidget = require('./protocol/TimerWidget').default;
         return <TimerWidget widget={widget} onComplete={() => updateWidget(widget.id, { completed: true })} />;
       case 'pattern':
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const PatternWidget = require('./protocol/PatternWidget').default;
         return <PatternWidget widget={widget} />;
       case 'measurement':
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const MeasurementWidget = require('./protocol/MeasurementWidget').default;
         return <MeasurementWidget widget={widget} />;
       case 'pcr':
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const PCRWidget = require('./protocol/PCRWidget').default;
         return <PCRWidget widget={widget} />;
       case 'dilution':
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const DilutionWidget = require('./protocol/DilutionWidget').default;
         return <DilutionWidget widget={widget} />;
       case 'storage':
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const StorageWidget = require('./protocol/StorageWidget').default;
         return <StorageWidget widget={widget} />;
       default:
         return <div className="text-sm text-gray-500">Unknown widget type</div>;
