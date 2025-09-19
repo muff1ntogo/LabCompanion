@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useResearch } from '@/lib/stores/useResearch';
 import { useQuests } from '@/lib/stores/useQuests';
+import { useJournal } from '@/lib/stores/useJournal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,9 +32,11 @@ export function ChecklistManager({
   } = useResearch();
   
   const { updateQuestProgress } = useQuests();
+  const { addLog } = useJournal();
   
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [newItemTexts, setNewItemTexts] = useState<{ [key: string]: string }>({});
+  const [loggedChecklists, setLoggedChecklists] = useState(new Set<string>());
 
   // Initialize widget checklist if needed
   useEffect(() => {
@@ -55,16 +58,23 @@ export function ChecklistManager({
       const completedItems = checklist.items.filter(item => item.completed).length;
       const totalItems = checklist.items.length;
       
-      if (totalItems > 0 && completedItems === totalItems) {
+      if (totalItems > 0 && completedItems === totalItems && !loggedChecklists.has(checklist.id)) {
+        // Log checklist completion to journal
+        addLog(`Checklist completed: "${checklist.title}" (${totalItems} items)`);
+        
         updateQuestProgress('quest-checklist-1', 
           checklists.filter(c => c.items.every(item => item.completed) && c.items.length > 0).length
         );
+        
+        // Mark as logged to prevent duplicate logs
+        setLoggedChecklists(prev => new Set(prev).add(checklist.id));
+        
         if (onComplete && checklist.widgetId === widgetId) {
           onComplete();
         }
       }
     });
-  }, [checklists, updateQuestProgress, onComplete, widgetId]);
+  }, [checklists, updateQuestProgress, onComplete, widgetId, addLog, loggedChecklists]);
 
   const handleAddChecklist = () => {
     if (newChecklistTitle.trim()) {

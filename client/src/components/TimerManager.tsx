@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useResearch } from '@/lib/stores/useResearch';
 import { useQuests } from '@/lib/stores/useQuests';
 import { useAudio } from '@/lib/stores/useAudio';
+import { useJournal } from '@/lib/stores/useJournal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,9 +36,11 @@ export function TimerManager({
   
   const { updateQuestProgress } = useQuests();
   const { playSuccess } = useAudio();
+  const { addLog } = useJournal();
   
   const [newTimerDuration, setNewTimerDuration] = useState('5');
   const [newTimerName, setNewTimerName] = useState('');
+  const [loggedTimers, setLoggedTimers] = useState(new Set<string>());
 
   // Timer tick effect
   useEffect(() => {
@@ -51,17 +54,25 @@ export function TimerManager({
   // Handle timer completion
   useEffect(() => {
     timers.forEach(timer => {
-      if (timer.isCompleted) {
+      if (timer.isCompleted && !loggedTimers.has(timer.id)) {
         playSuccess();
+        // Log timer completion to journal
+        const durationMin = Math.round(timer.duration / 60);
+        addLog(`Timer completed: "${timer.name}" (${durationMin} minutes)`);
+        
         updateQuestProgress('quest-timer-1', 
           timers.filter(t => t.isCompleted).length
         );
+        
+        // Mark as logged to prevent duplicate logs
+        setLoggedTimers(prev => new Set(prev).add(timer.id));
+        
         if (onComplete) {
           onComplete();
         }
       }
     });
-  }, [timers, playSuccess, updateQuestProgress, onComplete]);
+  }, [timers, playSuccess, updateQuestProgress, onComplete, addLog, loggedTimers]);
 
   const handleAddTimer = () => {
     const duration = parseInt(newTimerDuration) * 60; // Convert minutes to seconds
