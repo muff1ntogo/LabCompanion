@@ -8,13 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
 } from '@/components/ui/dialog';
 import {
   Popover,
@@ -28,16 +26,16 @@ import { ChecklistManager } from './ChecklistManager';
 import { RunProtocolPage } from './RunProtocolPage';
 
 const ProtocolBuilder: React.FC = () => {
-  // Dialog states for widget config
-  const [showPatternConfig, setShowPatternConfig] = useState(false);
-  const [showMeasurementConfig, setShowMeasurementConfig] = useState(false);
-  const [showPCRConfig, setShowPCRConfig] = useState(false);
-  const [showStorageConfig, setShowStorageConfig] = useState(false);
-  // Config states for each widget type
+  // Dialog states and config for widget config
+  const [dialogState, setDialogState] = useState<null | {
+    type: ProtocolWidget['type'];
+    open: boolean;
+  }>(null);
   const [patternConfig, setPatternConfig] = useState({ steps: [], repeatCount: 1 });
-  const [measurementConfig, setMeasurementConfig] = useState({ unit: 'ml', target: 1, tolerance: 0.1 });
+  const [measurementConfig, setMeasurementConfig] = useState({ unit: 'ml', target: 1, tolerance: 0.1, enableConversion: false });
   const [pcrConfig, setPCRConfig] = useState({ cycles: 30, denaturation: 95, annealing: 55, extension: 72 });
   const [storageConfig, setStorageConfig] = useState({ temperature: -20, location: 'Freezer A', duration: '24 hours' });
+  const [dilutionConfig, setDilutionConfig] = useState({ method: 'factor', factor: 2, targetConcentration: '', inputValue: '', inputUnit: 'ml', outputUnit: 'ml' });
   const {
     protocols,
     currentProtocol,
@@ -95,13 +93,11 @@ const ProtocolBuilder: React.FC = () => {
   };
 
   const handleAddWidget = (type: ProtocolWidget['type'], position: { x: number; y: number } = { x: 50, y: 50 }) => {
-    if (type === 'timer') {
-      // Store the position and show timer configuration popup
+    if (['timer', 'pattern', 'measurement', 'pcr', 'storage', 'dilution'].includes(type)) {
       setPendingTimerPosition(position);
-      setShowTimerConfig(true);
+      setDialogState({ type, open: true });
       return;
     }
-    
     const widgetConfig = getDefaultWidgetConfig(type);
     const widget: Omit<ProtocolWidget, 'id'> = {
       type,
@@ -140,6 +136,8 @@ const ProtocolBuilder: React.FC = () => {
         return { cycles: 30, denaturation: 95, annealing: 55, extension: 72 };
       case 'storage':
         return { temperature: -20, location: 'Freezer A', duration: '24 hours' };
+      case 'dilution':
+        return { method: 'factor', factor: 2, targetConcentration: '', inputValue: '', inputUnit: 'ml', outputUnit: 'ml' };
       default:
         return {};
     }
@@ -166,68 +164,37 @@ const ProtocolBuilder: React.FC = () => {
       });
       addJournalLog(log);
       updateQuestProgress('quest-protocol-1', 1);
-      // Do NOT exit or change view mode after saving
+      setEditMode(false); // Exit edit mode after saving
     }
   };
 
   const renderWidget = (widget: ProtocolWidget) => {
     switch (widget.type) {
       case 'timer':
-        return (
-          <TimerManager
-            widgetId={widget.id}
-            initialDuration={widget.config.duration || 300}
-            autoStart={widget.config.autoStart || false}
-            onComplete={() => updateWidget(widget.id, { completed: true })}
-          />
-        );
+        // TimerWidget expects onComplete prop
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const TimerWidget = require('./protocol/TimerWidget').default;
+        return <TimerWidget widget={widget} onComplete={() => updateWidget(widget.id, { completed: true })} />;
       case 'pattern':
-        return (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-600 dark:text-gray-300">
-              Steps: {widget.config.steps?.length || 0} | Repeat: {widget.config.repeatCount || 1}x
-            </p>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Protocol pattern widget
-            </div>
-          </div>
-        );
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const PatternWidget = require('./protocol/PatternWidget').default;
+        return <PatternWidget widget={widget} />;
       case 'measurement':
-        return (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              Target: {widget.config.target || 1} {widget.config.unit || 'ml'}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Tolerance: ±{widget.config.tolerance || 0.1} {widget.config.unit || 'ml'}
-            </p>
-          </div>
-        );
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const MeasurementWidget = require('./protocol/MeasurementWidget').default;
+        return <MeasurementWidget widget={widget} />;
       case 'pcr':
-        return (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {widget.config.cycles || 30} Cycles
-            </p>
-            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              <div>Denaturation: {widget.config.denaturation || 95}°C</div>
-              <div>Annealing: {widget.config.annealing || 55}°C</div>
-              <div>Extension: {widget.config.extension || 72}°C</div>
-            </div>
-          </div>
-        );
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const PCRWidget = require('./protocol/PCRWidget').default;
+        return <PCRWidget widget={widget} />;
+      case 'dilution':
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const DilutionWidget = require('./protocol/DilutionWidget').default;
+        return <DilutionWidget widget={widget} />;
       case 'storage':
-        return (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {widget.config.location || 'Storage Location'}
-            </p>
-            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              <div>Temperature: {widget.config.temperature || -20}°C</div>
-              <div>Duration: {widget.config.duration || '24 hours'}</div>
-            </div>
-          </div>
-        );
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const StorageWidget = require('./protocol/StorageWidget').default;
+        return <StorageWidget widget={widget} />;
       default:
         return <div className="text-sm text-gray-500">Unknown widget type</div>;
     }
@@ -378,6 +345,7 @@ const ProtocolBuilder: React.FC = () => {
       case 'measurement': return <Ruler className="w-5 h-5" />;
       case 'pcr': return <Dna className="w-5 h-5" />;
       case 'storage': return <Package className="w-5 h-5" />;
+      case 'dilution': return <FlaskConical className="w-5 h-5" />;
       default: return <Timer className="w-5 h-5" />;
     }
   };
@@ -389,13 +357,14 @@ const ProtocolBuilder: React.FC = () => {
       case 'measurement': return 'Measurement';
       case 'pcr': return 'PCR';
       case 'storage': return 'Storage';
+      case 'dilution': return 'Dilution';
       default: return 'Widget';
     }
   };
 
   // Widget Popup Menu Component
   const renderWidgetPopup = () => {
-    const widgetTypes: ProtocolWidget['type'][] = ['timer', 'pattern', 'measurement', 'pcr', 'storage'];
+  const widgetTypes: ProtocolWidget['type'][] = ['timer', 'pattern', 'measurement', 'pcr', 'storage', 'dilution'];
     
     return (
       <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
@@ -411,7 +380,7 @@ const ProtocolBuilder: React.FC = () => {
         <PopoverContent className="w-64 p-3" side="top" align="end">
           <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
           <div className="grid grid-cols-2 gap-2">
-            {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
+            {(['timer', 'pattern', 'measurement', 'pcr', 'storage', 'dilution'] as ProtocolWidget['type'][]).map((type) => (
               <Button
                 key={type}
                 variant="ghost"
@@ -419,10 +388,7 @@ const ProtocolBuilder: React.FC = () => {
                 onClick={() => {
                   setShowWidgetPopover(false);
                   if (type === 'timer') setShowTimerConfig(true);
-                  else if (type === 'pattern') setShowPatternConfig(true);
-                  else if (type === 'measurement') setShowMeasurementConfig(true);
-                  else if (type === 'pcr') setShowPCRConfig(true);
-                  else if (type === 'storage') setShowStorageConfig(true);
+                  else setDialogState({ type, open: true });
                 }}
               >
                 {getWidgetIcon(type)}
@@ -544,10 +510,7 @@ const ProtocolBuilder: React.FC = () => {
                     onClick={() => {
                       setShowWidgetPopover(false);
                       if (type === 'timer') setShowTimerConfig(true);
-                      else if (type === 'pattern') setShowPatternConfig(true);
-                      else if (type === 'measurement') setShowMeasurementConfig(true);
-                      else if (type === 'pcr') setShowPCRConfig(true);
-                      else if (type === 'storage') setShowStorageConfig(true);
+                      else setDialogState({ type, open: true });
                     }}
                   >
                     {getWidgetIcon(type)}
@@ -584,6 +547,7 @@ const ProtocolBuilder: React.FC = () => {
   </div>
   );
 
+
   // Function to render the main protocol content based on state
   const renderProtocolContent = () => {
     switch (protocolState) {
@@ -598,206 +562,142 @@ const ProtocolBuilder: React.FC = () => {
     }
   };
 
+  // Generic widget config dialog
+  const renderWidgetConfigDialog = () => {
+    if (!dialogState) return null;
+    const { type, open } = dialogState;
+    let config: any;
+    let setConfig: (c: any) => void;
+    let fields: Array<any>;
+    let title: string;
+    let resetConfig: () => void;
+    if (type === 'pattern') {
+      config = patternConfig;
+      setConfig = setPatternConfig;
+      title = 'Add Protocol Pattern';
+      fields = [
+        { label: 'Repeat Count', type: 'number', min: 1, value: config.repeatCount, onChange: (v: any) => setConfig({ ...config, repeatCount: Number(v) }) }
+      ];
+      resetConfig = () => setPatternConfig({ steps: [], repeatCount: 1 });
+    } else if (type === 'measurement') {
+      config = measurementConfig;
+      setConfig = setMeasurementConfig;
+      title = 'Add Measurement';
+      fields = [
+        { label: 'Target', type: 'number', value: config.target, onChange: (v: any) => setConfig({ ...config, target: Number(v) }) },
+        { label: 'Unit', type: 'select', value: config.unit, options: ['L', 'mL', 'uL', 'nL'], onChange: (v: any) => setConfig({ ...config, unit: v }) },
+        { label: 'Tolerance', type: 'number', value: config.tolerance, onChange: (v: any) => setConfig({ ...config, tolerance: Number(v) }) },
+        { label: 'Enable Quick Unit Conversion', type: 'checkbox', value: config.enableConversion, onChange: (v: any) => setConfig({ ...config, enableConversion: v }) }
+      ];
+      resetConfig = () => setMeasurementConfig({ unit: 'ml', target: 1, tolerance: 0.1, enableConversion: false });
+    } else if (type === 'pcr') {
+      config = pcrConfig;
+      setConfig = setPCRConfig;
+      title = 'Add PCR Cycle';
+      fields = [
+        { label: 'Cycles', type: 'number', value: config.cycles, onChange: (v: any) => setConfig({ ...config, cycles: Number(v) }) },
+        { label: 'Denaturation (°C)', type: 'number', value: config.denaturation, onChange: (v: any) => setConfig({ ...config, denaturation: Number(v) }) },
+        { label: 'Annealing (°C)', type: 'number', value: config.annealing, onChange: (v: any) => setConfig({ ...config, annealing: Number(v) }) },
+        { label: 'Extension (°C)', type: 'number', value: config.extension, onChange: (v: any) => setConfig({ ...config, extension: Number(v) }) }
+      ];
+      resetConfig = () => setPCRConfig({ cycles: 30, denaturation: 95, annealing: 55, extension: 72 });
+    } else if (type === 'timer') {
+      config = { duration: timerDuration, autoStart: timerAutoStart };
+      setConfig = (c: any) => {
+        setTimerDuration(c.duration);
+        setTimerAutoStart(c.autoStart);
+      };
+      title = 'Add Timer';
+      fields = [
+        { label: 'Duration (seconds)', type: 'number', min: 1, value: config.duration, onChange: (v: any) => setConfig({ ...config, duration: Number(v) }) },
+        { label: 'Auto Start', type: 'checkbox', value: config.autoStart, onChange: (v: any) => setConfig({ ...config, autoStart: v }) }
+      ];
+      resetConfig = () => { setTimerDuration(300); setTimerAutoStart(false); };
+    } else if (type === 'dilution') {
+      config = dilutionConfig;
+      setConfig = setDilutionConfig;
+      title = 'Add Dilution';
+      fields = [
+        { label: 'Input Value', type: 'number', value: config.inputValue, onChange: (v: any) => setConfig({ ...config, inputValue: v }) },
+        { label: 'Input Unit', type: 'select', value: config.inputUnit, options: ['L', 'mL', 'uL', 'nL'], onChange: (v: any) => setConfig({ ...config, inputUnit: v }) },
+        { label: 'Dilution Method', type: 'select', value: config.method, options: ['factor', 'target concentration'], onChange: (v: any) => setConfig({ ...config, method: v }) },
+        { label: 'Dilution Factor', type: 'number', value: config.factor, onChange: (v: any) => setConfig({ ...config, factor: v }) },
+        { label: 'Target Concentration', type: 'text', value: config.targetConcentration, onChange: (v: any) => setConfig({ ...config, targetConcentration: v }) },
+        { label: 'Output Unit', type: 'select', value: config.outputUnit, options: ['L', 'mL', 'uL', 'nL'], onChange: (v: any) => setConfig({ ...config, outputUnit: v }) },
+        { label: 'Concentration Unit', type: 'select', value: config.concentrationUnit || 'mg/mL', options: ['g/L', 'mg/mL', 'ug/uL', 'ng/nL'], onChange: (v: any) => setConfig({ ...config, concentrationUnit: v }) }
+      ];
+      resetConfig = () => setDilutionConfig({ method: 'factor', factor: 2, targetConcentration: '', inputValue: '', inputUnit: 'ml', outputUnit: 'ml' });
+    } else if (type === 'storage') {
+      config = storageConfig;
+      setConfig = setStorageConfig;
+      title = 'Add Storage';
+      fields = [
+        { label: 'Temperature (°C)', type: 'number', value: config.temperature, onChange: (v: any) => setConfig({ ...config, temperature: Number(v) }) },
+        { label: 'Location', type: 'text', value: config.location, onChange: (v: any) => setConfig({ ...config, location: v }) },
+        { label: 'Duration', type: 'text', value: config.duration, onChange: (v: any) => setConfig({ ...config, duration: v }) }
+      ];
+      resetConfig = () => setStorageConfig({ temperature: -20, location: 'Freezer A', duration: '24 hours' });
+    } else {
+      return null;
+    }
+    const handleClose = () => {
+      setDialogState(null);
+      resetConfig();
+    };
+    const handleAdd = () => {
+      let widgetConfig = config;
+      if (type === 'timer') widgetConfig = { duration: timerDuration, autoStart: timerAutoStart };
+      addWidget({
+        type,
+        title: getDefaultWidgetTitle(type),
+        config: widgetConfig,
+        position: pendingTimerPosition,
+        completed: false
+      });
+      setDialogState(null);
+      resetConfig();
+      if (type === 'timer') setPendingTimerPosition({ x: 50, y: 50 });
+    };
+    return (
+      <Dialog open={open} onOpenChange={open => { if (!open) handleClose(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {fields.map((field, i) => (
+              <div key={i}>
+                {field.type === 'checkbox' ? (
+                  <label className="inline-flex items-center mt-2">
+                    <input type="checkbox" className="mr-2" checked={field.value} onChange={e => field.onChange(e.target.checked)} />
+                    {field.label}
+                  </label>
+                ) : (
+                  <>
+                    <label className="block text-sm">{field.label}</label>
+                    <Input type={field.type} min={field.min} value={field.value} onChange={e => field.onChange(e.target.value)} />
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleAdd}>Add</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <>
       {renderProtocolContent()}
-      {/* Pattern Config Dialog */}
-      <Dialog open={showPatternConfig} onOpenChange={setShowPatternConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Protocol Pattern</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Repeat Count</label>
-            <Input type="number" min={1} value={patternConfig.repeatCount} onChange={e => setPatternConfig({ ...patternConfig, repeatCount: Number(e.target.value) })} />
-            {/* Steps editing UI can be added here */}
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowPatternConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'pattern', title: 'Protocol Pattern', config: patternConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowPatternConfig(false);
-              setPatternConfig({ steps: [], repeatCount: 1 });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* Measurement Config Dialog */}
-      <Dialog open={showMeasurementConfig} onOpenChange={setShowMeasurementConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Measurement</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Target</label>
-            <Input type="number" value={measurementConfig.target} onChange={e => setMeasurementConfig({ ...measurementConfig, target: Number(e.target.value) })} />
-            <label className="block text-sm">Unit</label>
-            <Input value={measurementConfig.unit} onChange={e => setMeasurementConfig({ ...measurementConfig, unit: e.target.value })} />
-            <label className="block text-sm">Tolerance</label>
-            <Input type="number" value={measurementConfig.tolerance} onChange={e => setMeasurementConfig({ ...measurementConfig, tolerance: Number(e.target.value) })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowMeasurementConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'measurement', title: 'Measurement', config: measurementConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowMeasurementConfig(false);
-              setMeasurementConfig({ unit: 'ml', target: 1, tolerance: 0.1 });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* PCR Config Dialog */}
-      <Dialog open={showPCRConfig} onOpenChange={setShowPCRConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add PCR Cycle</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Cycles</label>
-            <Input type="number" value={pcrConfig.cycles} onChange={e => setPCRConfig({ ...pcrConfig, cycles: Number(e.target.value) })} />
-            <label className="block text-sm">Denaturation (°C)</label>
-            <Input type="number" value={pcrConfig.denaturation} onChange={e => setPCRConfig({ ...pcrConfig, denaturation: Number(e.target.value) })} />
-            <label className="block text-sm">Annealing (°C)</label>
-            <Input type="number" value={pcrConfig.annealing} onChange={e => setPCRConfig({ ...pcrConfig, annealing: Number(e.target.value) })} />
-            <label className="block text-sm">Extension (°C)</label>
-            <Input type="number" value={pcrConfig.extension} onChange={e => setPCRConfig({ ...pcrConfig, extension: Number(e.target.value) })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowPCRConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'pcr', title: 'PCR Cycle', config: pcrConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowPCRConfig(false);
-              setPCRConfig({ cycles: 30, denaturation: 95, annealing: 55, extension: 72 });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* Storage Config Dialog */}
-      <Dialog open={showStorageConfig} onOpenChange={setShowStorageConfig}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Storage</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <label className="block text-sm">Temperature (°C)</label>
-            <Input type="number" value={storageConfig.temperature} onChange={e => setStorageConfig({ ...storageConfig, temperature: Number(e.target.value) })} />
-            <label className="block text-sm">Location</label>
-            <Input value={storageConfig.location} onChange={e => setStorageConfig({ ...storageConfig, location: e.target.value })} />
-            <label className="block text-sm">Duration</label>
-            <Input value={storageConfig.duration} onChange={e => setStorageConfig({ ...storageConfig, duration: e.target.value })} />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowStorageConfig(false)}>Cancel</Button>
-            <Button onClick={() => {
-              addWidget({ type: 'storage', title: 'Storage', config: storageConfig, position: { x: 50, y: 50 }, completed: false });
-              setShowStorageConfig(false);
-              setStorageConfig({ temperature: -20, location: 'Freezer A', duration: '24 hours' });
-            }}>Add</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {renderWidgetConfigDialog()}
     </>
   );
-  // Render widget config dialogs at root
-  return <>
-    {renderProtocolContent()}
-    {/* Pattern Config Dialog */}
-    <Dialog open={showPatternConfig} onOpenChange={setShowPatternConfig}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Protocol Pattern</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2">
-          <label className="block text-sm">Repeat Count</label>
-          <Input type="number" min={1} value={patternConfig.repeatCount} onChange={e => setPatternConfig({ ...patternConfig, repeatCount: Number(e.target.value) })} />
-          {/* Steps editing UI can be added here */}
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setShowPatternConfig(false)}>Cancel</Button>
-          <Button onClick={() => {
-            addWidget({ type: 'pattern', title: 'Protocol Pattern', config: patternConfig, position: { x: 50, y: 50 }, completed: false });
-            setShowPatternConfig(false);
-            setPatternConfig({ steps: [], repeatCount: 1 });
-          }}>Add</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-    {/* Measurement Config Dialog */}
-    <Dialog open={showMeasurementConfig} onOpenChange={setShowMeasurementConfig}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Measurement</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2">
-          <label className="block text-sm">Target</label>
-          <Input type="number" value={measurementConfig.target} onChange={e => setMeasurementConfig({ ...measurementConfig, target: Number(e.target.value) })} />
-          <label className="block text-sm">Unit</label>
-          <Input value={measurementConfig.unit} onChange={e => setMeasurementConfig({ ...measurementConfig, unit: e.target.value })} />
-          <label className="block text-sm">Tolerance</label>
-          <Input type="number" value={measurementConfig.tolerance} onChange={e => setMeasurementConfig({ ...measurementConfig, tolerance: Number(e.target.value) })} />
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setShowMeasurementConfig(false)}>Cancel</Button>
-          <Button onClick={() => {
-            addWidget({ type: 'measurement', title: 'Measurement', config: measurementConfig, position: { x: 50, y: 50 }, completed: false });
-            setShowMeasurementConfig(false);
-            setMeasurementConfig({ unit: 'ml', target: 1, tolerance: 0.1 });
-          }}>Add</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-    {/* PCR Config Dialog */}
-    <Dialog open={showPCRConfig} onOpenChange={setShowPCRConfig}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add PCR Cycle</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2">
-          <label className="block text-sm">Cycles</label>
-          <Input type="number" value={pcrConfig.cycles} onChange={e => setPCRConfig({ ...pcrConfig, cycles: Number(e.target.value) })} />
-          <label className="block text-sm">Denaturation (°C)</label>
-          <Input type="number" value={pcrConfig.denaturation} onChange={e => setPCRConfig({ ...pcrConfig, denaturation: Number(e.target.value) })} />
-          <label className="block text-sm">Annealing (°C)</label>
-          <Input type="number" value={pcrConfig.annealing} onChange={e => setPCRConfig({ ...pcrConfig, annealing: Number(e.target.value) })} />
-          <label className="block text-sm">Extension (°C)</label>
-          <Input type="number" value={pcrConfig.extension} onChange={e => setPCRConfig({ ...pcrConfig, extension: Number(e.target.value) })} />
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setShowPCRConfig(false)}>Cancel</Button>
-          <Button onClick={() => {
-            addWidget({ type: 'pcr', title: 'PCR Cycle', config: pcrConfig, position: { x: 50, y: 50 }, completed: false });
-            setShowPCRConfig(false);
-            setPCRConfig({ cycles: 30, denaturation: 95, annealing: 55, extension: 72 });
-          }}>Add</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-    {/* Storage Config Dialog */}
-    <Dialog open={showStorageConfig} onOpenChange={setShowStorageConfig}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Storage</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2">
-          <label className="block text-sm">Temperature (°C)</label>
-          <Input type="number" value={storageConfig.temperature} onChange={e => setStorageConfig({ ...storageConfig, temperature: Number(e.target.value) })} />
-          <label className="block text-sm">Location</label>
-          <Input value={storageConfig.location} onChange={e => setStorageConfig({ ...storageConfig, location: e.target.value })} />
-          <label className="block text-sm">Duration</label>
-          <Input value={storageConfig.duration} onChange={e => setStorageConfig({ ...storageConfig, duration: e.target.value })} />
-        </div>
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setShowStorageConfig(false)}>Cancel</Button>
-          <Button onClick={() => {
-            addWidget({ type: 'storage', title: 'Storage', config: storageConfig, position: { x: 50, y: 50 }, completed: false });
-            setShowStorageConfig(false);
-            setStorageConfig({ temperature: -20, location: 'Freezer A', duration: '24 hours' });
-          }}>Add</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
 
-  </>;
+  // Only use the new generic dialog logic
 }
 
 export { ProtocolBuilder };
