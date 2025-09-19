@@ -490,16 +490,14 @@ const ProtocolBuilder: React.FC = () => {
               </div>
             )}
           </div>
-          {/* Widget Popup Menu */}
-          {renderWidgetPopup()}
           {/* Back button top left */}
-          <div className="absolute left-4 top-[72px] z-40">
+          <div className="flex items-center" style={{ position: 'relative', top: 0, left: 0, zIndex: 40, marginTop: 8 }}>
             <Button
-              className="absolute left-4 top-0 bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
-              style={{ minWidth: 40, minHeight: 40, transform: 'translateY(8px)' }}
+              className="bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
+              style={{ minWidth: 40, minHeight: 40 }}
               onClick={() => {
                 setEditMode(false);
-                setViewMode('build'); // Go back to protocol library
+                stopBuilding(); // Go back to protocol library
               }}
               aria-label="Back"
               size="icon"
@@ -507,7 +505,6 @@ const ProtocolBuilder: React.FC = () => {
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
             </Button>
           </div>
-
           {/* Plus button to add widgets bottom right */}
           {isBuilding && (
             <Button
@@ -519,7 +516,6 @@ const ProtocolBuilder: React.FC = () => {
               <Plus className="w-6 h-6" />
             </Button>
           )}
-
           {/* Widget Popup Menu - render outside grid for overlay */}
           <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
             <PopoverContent className="w-64 p-3" side="top" align="end">
@@ -542,7 +538,6 @@ const ProtocolBuilder: React.FC = () => {
               </div>
             </PopoverContent>
           </Popover>
-
           {/* Edit/Save button bottom left */}
           {isBuilding && !editMode && (
             <Button
