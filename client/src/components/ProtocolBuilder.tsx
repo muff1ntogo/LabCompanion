@@ -692,7 +692,106 @@ const ProtocolBuilder: React.FC = () => {
     }
   };
 
-  return renderProtocolContent();
+  return (
+    <>
+      {renderProtocolContent()}
+      {/* Pattern Config Dialog */}
+      <Dialog open={showPatternConfig} onOpenChange={setShowPatternConfig}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Protocol Pattern</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="block text-sm">Repeat Count</label>
+            <Input type="number" min={1} value={patternConfig.repeatCount} onChange={e => setPatternConfig({ ...patternConfig, repeatCount: Number(e.target.value) })} />
+            {/* Steps editing UI can be added here */}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowPatternConfig(false)}>Cancel</Button>
+            <Button onClick={() => {
+              addWidget({ type: 'pattern', title: 'Protocol Pattern', config: patternConfig, position: { x: 50, y: 50 }, completed: false });
+              setShowPatternConfig(false);
+              setPatternConfig({ steps: [], repeatCount: 1 });
+            }}>Add</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Measurement Config Dialog */}
+      <Dialog open={showMeasurementConfig} onOpenChange={setShowMeasurementConfig}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Measurement</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="block text-sm">Target</label>
+            <Input type="number" value={measurementConfig.target} onChange={e => setMeasurementConfig({ ...measurementConfig, target: Number(e.target.value) })} />
+            <label className="block text-sm">Unit</label>
+            <Input value={measurementConfig.unit} onChange={e => setMeasurementConfig({ ...measurementConfig, unit: e.target.value })} />
+            <label className="block text-sm">Tolerance</label>
+            <Input type="number" value={measurementConfig.tolerance} onChange={e => setMeasurementConfig({ ...measurementConfig, tolerance: Number(e.target.value) })} />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowMeasurementConfig(false)}>Cancel</Button>
+            <Button onClick={() => {
+              addWidget({ type: 'measurement', title: 'Measurement', config: measurementConfig, position: { x: 50, y: 50 }, completed: false });
+              setShowMeasurementConfig(false);
+              setMeasurementConfig({ unit: 'ml', target: 1, tolerance: 0.1 });
+            }}>Add</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* PCR Config Dialog */}
+      <Dialog open={showPCRConfig} onOpenChange={setShowPCRConfig}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add PCR Cycle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="block text-sm">Cycles</label>
+            <Input type="number" value={pcrConfig.cycles} onChange={e => setPCRConfig({ ...pcrConfig, cycles: Number(e.target.value) })} />
+            <label className="block text-sm">Denaturation (°C)</label>
+            <Input type="number" value={pcrConfig.denaturation} onChange={e => setPCRConfig({ ...pcrConfig, denaturation: Number(e.target.value) })} />
+            <label className="block text-sm">Annealing (°C)</label>
+            <Input type="number" value={pcrConfig.annealing} onChange={e => setPCRConfig({ ...pcrConfig, annealing: Number(e.target.value) })} />
+            <label className="block text-sm">Extension (°C)</label>
+            <Input type="number" value={pcrConfig.extension} onChange={e => setPCRConfig({ ...pcrConfig, extension: Number(e.target.value) })} />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowPCRConfig(false)}>Cancel</Button>
+            <Button onClick={() => {
+              addWidget({ type: 'pcr', title: 'PCR Cycle', config: pcrConfig, position: { x: 50, y: 50 }, completed: false });
+              setShowPCRConfig(false);
+              setPCRConfig({ cycles: 30, denaturation: 95, annealing: 55, extension: 72 });
+            }}>Add</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Storage Config Dialog */}
+      <Dialog open={showStorageConfig} onOpenChange={setShowStorageConfig}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Storage</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="block text-sm">Temperature (°C)</label>
+            <Input type="number" value={storageConfig.temperature} onChange={e => setStorageConfig({ ...storageConfig, temperature: Number(e.target.value) })} />
+            <label className="block text-sm">Location</label>
+            <Input value={storageConfig.location} onChange={e => setStorageConfig({ ...storageConfig, location: e.target.value })} />
+            <label className="block text-sm">Duration</label>
+            <Input value={storageConfig.duration} onChange={e => setStorageConfig({ ...storageConfig, duration: e.target.value })} />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowStorageConfig(false)}>Cancel</Button>
+            <Button onClick={() => {
+              addWidget({ type: 'storage', title: 'Storage', config: storageConfig, position: { x: 50, y: 50 }, completed: false });
+              setShowStorageConfig(false);
+              setStorageConfig({ temperature: -20, location: 'Freezer A', duration: '24 hours' });
+            }}>Add</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
   // Render widget config dialogs at root
   return <>
     {renderProtocolContent()}
