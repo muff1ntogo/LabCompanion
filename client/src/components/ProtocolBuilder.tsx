@@ -495,10 +495,11 @@ const ProtocolBuilder: React.FC = () => {
           {/* Back button top left */}
           <div className="absolute left-4 top-[72px] z-40">
             <Button
-              className="bg-white text-gray-700 dark:text-white rounded-full shadow-lg p-2 hover:text-blue-500"
+              className="bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
+              style={{ minWidth: 40, minHeight: 40 }}
               onClick={() => {
                 setEditMode(false);
-                setViewMode('build');
+                setViewMode('build'); // Go back to protocol library
               }}
               aria-label="Back"
               size="icon"
