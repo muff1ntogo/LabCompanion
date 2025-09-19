@@ -493,14 +493,19 @@ const ProtocolBuilder: React.FC = () => {
           {/* Widget Popup Menu */}
           {renderWidgetPopup()}
           {/* Back button top left */}
-          <Button
-            className="fixed top-4 left-4 z-50 bg-white text-gray-700 dark:text-white rounded-full shadow-lg p-2 hover:text-blue-500"
-            onClick={() => setViewMode('build')}
-            aria-label="Back"
-            size="icon"
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-          </Button>
+          <div className="absolute left-4 top-[72px] z-40">
+            <Button
+              className="bg-white text-gray-700 dark:text-white rounded-full shadow-lg p-2 hover:text-blue-500"
+              onClick={() => {
+                setEditMode(false);
+                setViewMode('build');
+              }}
+              aria-label="Back"
+              size="icon"
+            >
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </Button>
+          </div>
 
           {/* Plus button to add widgets bottom right */}
           {isBuilding && (
