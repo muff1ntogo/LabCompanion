@@ -439,59 +439,13 @@ const ProtocolBuilder: React.FC = () => {
 
   // Editor State - Active protocol editing with full-width canvas
   const renderEditorState = () => (
-    <div className="flex-1 relative overflow-hidden">
+  <div className="flex-1 relative overflow-hidden">
       {viewMode === 'run' && currentProtocol ? (
         <RunProtocolPage protocolId={currentProtocol.id} onExit={() => setViewMode('build')} />
       ) : (
-        <div className="h-full overflow-y-auto p-4">
-          <div className="max-w-4xl mx-auto space-y-6">
-            {currentProtocol?.widgets.map((widget) => (
-              <div
-                key={widget.id}
-                className="relative"
-                onTouchStart={e => handleTouchStart(e, widget.id)}
-                onTouchMove={e => handleTouchMove(e, widget.id)}
-                onTouchEnd={() => handleTouchEnd(widget.id)}
-              >
-                <Card className={`p-4 transition-all ${swipedWidgetId === widget.id ? 'translate-x-20 bg-red-100' : ''}`}> 
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
-                    <Badge variant={widget.completed ? 'default' : 'secondary'}>
-                      {widget.completed ? 'Completed' : 'Pending'}
-                    </Badge>
-                  </div>
-                  {renderWidget(widget)}
-                  {editMode && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={() => removeWidget(widget.id)}
-                    >
-                      Delete
-                    </Button>
-                  )}
-                  {swipedWidgetId === widget.id && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2 animate-bounce"
-                      onClick={() => removeWidget(widget.id)}
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </Card>
-              </div>
-            ))}
-            {currentProtocol?.widgets.length === 0 && (
-              <div className="flex items-center justify-center text-gray-500 dark:text-gray-400">
-                Click the + button to add widgets and build your protocol
-              </div>
-            )}
-          </div>
+        <div className="h-full overflow-y-auto p-4 flex flex-col">
           {/* Back button top left */}
-          <div className="flex items-center" style={{ position: 'relative', top: 0, left: 0, zIndex: 40, marginTop: 8 }}>
+          <div className="flex items-center mb-4" style={{ position: 'relative', top: 0, left: 0, zIndex: 40 }}>
             <Button
               className="bg-blue-600 text-white rounded-full shadow-lg p-3 hover:bg-blue-700 transition"
               style={{ minWidth: 40, minHeight: 40 }}
@@ -505,39 +459,87 @@ const ProtocolBuilder: React.FC = () => {
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
             </Button>
           </div>
+          <div className="flex-1 flex flex-col justify-center items-center">
+            <div className="max-w-4xl w-full space-y-6">
+              {currentProtocol?.widgets.map((widget) => (
+                <div
+                  key={widget.id}
+                  className="relative"
+                  onTouchStart={e => handleTouchStart(e, widget.id)}
+                  onTouchMove={e => handleTouchMove(e, widget.id)}
+                  onTouchEnd={() => handleTouchEnd(widget.id)}
+                >
+                  <Card className={`p-4 transition-all ${swipedWidgetId === widget.id ? 'translate-x-20 bg-red-100' : ''}`}> 
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-medium text-gray-900 dark:text-white">{widget.title}</h3>
+                      <Badge variant={widget.completed ? 'default' : 'secondary'}>
+                        {widget.completed ? 'Completed' : 'Pending'}
+                      </Badge>
+                    </div>
+                    {renderWidget(widget)}
+                    {editMode && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2"
+                        onClick={() => removeWidget(widget.id)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                    {swipedWidgetId === widget.id && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2 animate-bounce"
+                        onClick={() => removeWidget(widget.id)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </Card>
+                </div>
+              ))}
+              {currentProtocol?.widgets.length === 0 && (
+                <div className="flex items-center justify-center text-gray-500 dark:text-gray-400 h-full min-h-[200px]">
+                  Click the + button to add widgets and build your protocol
+                </div>
+              )}
+            </div>
+          </div>
           {/* Plus button to add widgets bottom right */}
           {isBuilding && (
-            <Button
-              onClick={() => setShowWidgetPopover(true)}
-              className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-green-600 text-white"
-              size="icon"
-              aria-label="Add Widget"
-            >
-              <Plus className="w-6 h-6" />
-            </Button>
+            <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
+              <PopoverTrigger asChild>
+                <Button
+                  className="fixed bottom-20 right-4 shadow-lg z-50 sm:bottom-6 sm:right-6 h-12 w-12 rounded-full bg-green-600 text-white"
+                  size="icon"
+                  aria-label="Add Widget"
+                >
+                  <Plus className="w-6 h-6" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-3" side="top" align="end">
+                <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
+                    <Button
+                      key={type}
+                      variant="ghost"
+                      className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      onClick={() => {
+                        handleAddWidget(type);
+                        setShowWidgetPopover(false);
+                      }}
+                    >
+                      {getWidgetIcon(type)}
+                      <span className="text-xs">{getWidgetLabel(type)}</span>
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
-          {/* Widget Popup Menu - render outside grid for overlay */}
-          <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
-            <PopoverContent className="w-64 p-3" side="top" align="end">
-              <h3 className="font-medium mb-3 text-gray-900 dark:text-white text-sm">Add Widget</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {(['timer', 'pattern', 'measurement', 'pcr', 'storage'] as ProtocolWidget['type'][]).map((type) => (
-                  <Button
-                    key={type}
-                    variant="ghost"
-                    className="h-16 flex-col gap-1 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    onClick={() => {
-                      handleAddWidget(type);
-                      setShowWidgetPopover(false);
-                    }}
-                  >
-                    {getWidgetIcon(type)}
-                    <span className="text-xs">{getWidgetLabel(type)}</span>
-                  </Button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
           {/* Edit/Save button bottom left */}
           {isBuilding && !editMode && (
             <Button
