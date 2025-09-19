@@ -43,12 +43,6 @@ export function GameUI() {
       component: <ProtocolBuilder />
     },
     {
-      id: 'timers',
-      label: 'Timers',
-      icon: <Timer className="w-4 h-4" />,
-      component: <TimerManager />
-    },
-    {
       id: 'checklists',
       label: 'Lists',
       icon: <CheckSquare className="w-4 h-4" />,
@@ -65,12 +59,6 @@ export function GameUI() {
       label: 'Companion',
       icon: <Heart className="w-4 h-4" />,
       component: <CompanionPage />
-    },
-    {
-      id: 'journal',
-      label: 'Journal',
-      icon: <StickyNote className="w-4 h-4" />,
-      component: <JournalViewer />
     }
   ];
 
@@ -219,7 +207,7 @@ export function GameUI() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden bg-white dark:bg-gray-800 border-t dark:border-gray-700">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-4">
           {tabs.map((tab) => (
             <Button
               key={tab.id}

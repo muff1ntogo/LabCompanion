@@ -7,7 +7,7 @@ import { ProtocolWidget } from '@/types/research';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Timer, CheckSquare, StickyNote, Thermometer, Beaker, Trash2 } from 'lucide-react';
+import { Timer, GitBranch, Ruler, Dna, Package, Trash2 } from 'lucide-react';
 
 interface DragDropWidgetProps {
   children: React.ReactNode;
@@ -47,21 +47,21 @@ export function WidgetItem({ type, onAdd }: WidgetItemProps) {
   const getWidgetIcon = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer': return <Timer className="w-5 h-5" />;
-      case 'checklist': return <CheckSquare className="w-5 h-5" />;
-      case 'note': return <StickyNote className="w-5 h-5" />;
-      case 'temperature': return <Thermometer className="w-5 h-5" />;
-      case 'ph': return <Beaker className="w-5 h-5" />;
-      default: return <StickyNote className="w-5 h-5" />;
+      case 'pattern': return <GitBranch className="w-5 h-5" />;
+      case 'measurement': return <Ruler className="w-5 h-5" />;
+      case 'pcr': return <Dna className="w-5 h-5" />;
+      case 'storage': return <Package className="w-5 h-5" />;
+      default: return <Timer className="w-5 h-5" />;
     }
   };
 
   const getWidgetLabel = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer': return 'Timer';
-      case 'checklist': return 'Checklist';
-      case 'note': return 'Note';
-      case 'temperature': return 'Temperature';
-      case 'ph': return 'pH Meter';
+      case 'pattern': return 'Pattern';
+      case 'measurement': return 'Measurement';
+      case 'pcr': return 'PCR';
+      case 'storage': return 'Storage';
       default: return 'Widget';
     }
   };
@@ -82,7 +82,7 @@ export function WidgetItem({ type, onAdd }: WidgetItemProps) {
 }
 
 interface DropZoneProps {
-  onDrop: (position: { x: number; y: number }) => void;
+  onDrop: (type: ProtocolWidget['type'], position: { x: number; y: number }) => void;
   children: React.ReactNode;
   className?: string;
 }
@@ -90,7 +90,7 @@ interface DropZoneProps {
 export function DropZone({ onDrop, children, className = '' }: DropZoneProps) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: 'widget',
-    drop: (item, monitor) => {
+    drop: (item: { type: ProtocolWidget['type'] }, monitor) => {
       const offset = monitor.getClientOffset();
       if (offset) {
         const dropZoneRect = dropRef.current?.getBoundingClientRect();
@@ -99,7 +99,7 @@ export function DropZone({ onDrop, children, className = '' }: DropZoneProps) {
             x: offset.x - dropZoneRect.left,
             y: offset.y - dropZoneRect.top
           };
-          onDrop(position);
+          onDrop(item.type, position);
         }
       }
     },
@@ -177,11 +177,11 @@ export function PlacedWidget({
   const getWidgetIcon = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer': return <Timer className="w-4 h-4" />;
-      case 'checklist': return <CheckSquare className="w-4 h-4" />;
-      case 'note': return <StickyNote className="w-4 h-4" />;
-      case 'temperature': return <Thermometer className="w-4 h-4" />;
-      case 'ph': return <Beaker className="w-4 h-4" />;
-      default: return <StickyNote className="w-4 h-4" />;
+      case 'pattern': return <GitBranch className="w-4 h-4" />;
+      case 'measurement': return <Ruler className="w-4 h-4" />;
+      case 'pcr': return <Dna className="w-4 h-4" />;
+      case 'storage': return <Package className="w-4 h-4" />;
+      default: return <Timer className="w-4 h-4" />;
     }
   };
 

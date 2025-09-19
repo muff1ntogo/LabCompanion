@@ -21,7 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X, FlaskConical, Timer, CheckSquare, StickyNote, Thermometer, Beaker } from 'lucide-react';
+import { Plus, Save, Eye, Trash2, Edit, Maximize2, Minimize2, X, FlaskConical, Timer, GitBranch, Ruler, Dna, Package } from 'lucide-react';
 import { ProtocolWidget } from '@/types/research';
 import { TimerManager } from './TimerManager';
 import { ChecklistManager } from './ChecklistManager';
@@ -51,6 +51,10 @@ export function ProtocolBuilder() {
   const [newProtocolDescription, setNewProtocolDescription] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showWidgetPopover, setShowWidgetPopover] = useState(false);
+  const [showTimerConfig, setShowTimerConfig] = useState(false);
+  const [timerDuration, setTimerDuration] = useState(300); // 5 minutes default
+  const [timerAutoStart, setTimerAutoStart] = useState(false);
+  const [pendingTimerPosition, setPendingTimerPosition] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
   const [viewMode, setViewMode] = useState<'build' | 'run'>('build');
   const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -78,6 +82,13 @@ export function ProtocolBuilder() {
   };
 
   const handleAddWidget = (type: ProtocolWidget['type'], position: { x: number; y: number } = { x: 50, y: 50 }) => {
+    if (type === 'timer') {
+      // Store the position and show timer configuration popup
+      setPendingTimerPosition(position);
+      setShowTimerConfig(true);
+      return;
+    }
+    
     const widgetConfig = getDefaultWidgetConfig(type);
     const widget: Omit<ProtocolWidget, 'id'> = {
       type,
@@ -89,18 +100,33 @@ export function ProtocolBuilder() {
     addWidget(widget);
   };
 
+  const handleCreateTimer = () => {
+    const widget: Omit<ProtocolWidget, 'id'> = {
+      type: 'timer',
+      title: 'Timer',
+      config: { duration: timerDuration, autoStart: timerAutoStart },
+      position: pendingTimerPosition,
+      completed: false
+    };
+    addWidget(widget);
+    setShowTimerConfig(false);
+    setTimerDuration(300);
+    setTimerAutoStart(false);
+    setPendingTimerPosition({ x: 50, y: 50 });
+  };
+
   const getDefaultWidgetConfig = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer':
         return { duration: 300, autoStart: false }; // 5 minutes default
-      case 'checklist':
-        return { items: [] };
-      case 'note':
-        return { content: 'Add your notes here...' };
-      case 'temperature':
-        return { unit: 'celsius', target: 25 };
-      case 'ph':
-        return { target: 7.0, range: { min: 6.5, max: 7.5 } };
+      case 'pattern':
+        return { steps: [], repeatCount: 1 };
+      case 'measurement':
+        return { unit: 'ml', target: 1, tolerance: 0.1 };
+      case 'pcr':
+        return { cycles: 30, denaturation: 95, annealing: 55, extension: 72 };
+      case 'storage':
+        return { temperature: -20, location: 'Freezer A', duration: '24 hours' };
       default:
         return {};
     }
@@ -109,10 +135,10 @@ export function ProtocolBuilder() {
   const getDefaultWidgetTitle = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer': return 'Timer';
-      case 'checklist': return 'Checklist';
-      case 'note': return 'Notes';
-      case 'temperature': return 'Temperature Check';
-      case 'ph': return 'pH Measurement';
+      case 'pattern': return 'Protocol Pattern';
+      case 'measurement': return 'Measurement';
+      case 'pcr': return 'PCR Cycle';
+      case 'storage': return 'Storage';
       default: return 'Widget';
     }
   };
@@ -143,74 +169,51 @@ export function ProtocolBuilder() {
             onComplete={() => updateWidget(widget.id, { completed: true })}
           />
         );
-      case 'checklist':
-        return (
-          <ChecklistManager
-            widgetId={widget.id}
-            initialItems={widget.config.items || []}
-            onComplete={() => updateWidget(widget.id, { completed: true })}
-          />
-        );
-      case 'note':
+      case 'pattern':
         return (
           <div className="space-y-2">
-            <Textarea
-              value={widget.config.content || ''}
-              onChange={(e) => updateWidget(widget.id, { 
-                config: { ...widget.config, content: e.target.value }
-              })}
-              placeholder="Add your notes..."
-              className="text-sm"
-              rows={3}
-            />
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Steps: {widget.config.steps?.length || 0} | Repeat: {widget.config.repeatCount || 1}x
+            </p>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Protocol pattern widget
+            </div>
           </div>
         );
-      case 'temperature':
+      case 'measurement':
         return (
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Target:</span>
-              <Input
-                type="number"
-                value={widget.config.target || 25}
-                onChange={(e) => updateWidget(widget.id, {
-                  config: { ...widget.config, target: parseFloat(e.target.value) }
-                })}
-                className="w-20 text-sm"
-              />
-              <span className="text-sm">°C</span>
-            </div>
-            <Input
-              type="number"
-              placeholder="Current temperature"
-              className="text-sm"
-              step="0.1"
-            />
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              Target: {widget.config.target || 1} {widget.config.unit || 'ml'}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Tolerance: ±{widget.config.tolerance || 0.1} {widget.config.unit || 'ml'}
+            </p>
           </div>
         );
-      case 'ph':
+      case 'pcr':
         return (
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Target:</span>
-              <Input
-                type="number"
-                value={widget.config.target || 7.0}
-                onChange={(e) => updateWidget(widget.id, {
-                  config: { ...widget.config, target: parseFloat(e.target.value) }
-                })}
-                className="w-20 text-sm"
-                step="0.1"
-              />
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {widget.config.cycles || 30} Cycles
+            </p>
+            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <div>Denaturation: {widget.config.denaturation || 95}°C</div>
+              <div>Annealing: {widget.config.annealing || 55}°C</div>
+              <div>Extension: {widget.config.extension || 72}°C</div>
             </div>
-            <Input
-              type="number"
-              placeholder="Current pH"
-              className="text-sm"
-              step="0.1"
-              min="0"
-              max="14"
-            />
+          </div>
+        );
+      case 'storage':
+        return (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {widget.config.location || 'Storage Location'}
+            </p>
+            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <div>Temperature: {widget.config.temperature || -20}°C</div>
+              <div>Duration: {widget.config.duration || '24 hours'}</div>
+            </div>
           </div>
         );
       default:
@@ -359,28 +362,28 @@ export function ProtocolBuilder() {
   const getWidgetIcon = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer': return <Timer className="w-5 h-5" />;
-      case 'checklist': return <CheckSquare className="w-5 h-5" />;
-      case 'note': return <StickyNote className="w-5 h-5" />;
-      case 'temperature': return <Thermometer className="w-5 h-5" />;
-      case 'ph': return <Beaker className="w-5 h-5" />;
-      default: return <StickyNote className="w-5 h-5" />;
+      case 'pattern': return <GitBranch className="w-5 h-5" />;
+      case 'measurement': return <Ruler className="w-5 h-5" />;
+      case 'pcr': return <Dna className="w-5 h-5" />;
+      case 'storage': return <Package className="w-5 h-5" />;
+      default: return <Timer className="w-5 h-5" />;
     }
   };
 
   const getWidgetLabel = (type: ProtocolWidget['type']) => {
     switch (type) {
       case 'timer': return 'Timer';
-      case 'checklist': return 'Checklist';
-      case 'note': return 'Note';
-      case 'temperature': return 'Temperature';
-      case 'ph': return 'pH Meter';
+      case 'pattern': return 'Pattern';
+      case 'measurement': return 'Measurement';
+      case 'pcr': return 'PCR';
+      case 'storage': return 'Storage';
       default: return 'Widget';
     }
   };
 
   // Widget Popup Menu Component
   const renderWidgetPopup = () => {
-    const widgetTypes: ProtocolWidget['type'][] = ['timer', 'checklist', 'note', 'temperature', 'ph'];
+    const widgetTypes: ProtocolWidget['type'][] = ['timer', 'pattern', 'measurement', 'pcr', 'storage'];
     
     return (
       <Popover open={showWidgetPopover} onOpenChange={setShowWidgetPopover}>
@@ -437,7 +440,7 @@ export function ProtocolBuilder() {
         </div>
       ) : (
         <>
-          <DropZone onDrop={(position) => handleAddWidget('note', position)}>
+          <DropZone onDrop={(type, position) => handleAddWidget(type, position)}>
             {currentProtocol?.widgets.map((widget) => (
               <PlacedWidget
                 key={widget.id}
@@ -541,6 +544,54 @@ export function ProtocolBuilder() {
                       </Button>
                       <Button onClick={handleCreateProtocol}>
                         Create
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              {/* Timer Configuration Dialog */}
+              <Dialog open={showTimerConfig} onOpenChange={setShowTimerConfig}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Configure Timer</DialogTitle>
+                    <DialogDescription>
+                      Set up your timer duration and options.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-900 dark:text-white">
+                        Duration (minutes)
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="5"
+                        value={Math.floor(timerDuration / 60)}
+                        onChange={(e) => setTimerDuration(parseInt(e.target.value || '5') * 60)}
+                        min="1"
+                        max="480"
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="autoStart"
+                        checked={timerAutoStart}
+                        onChange={(e) => setTimerAutoStart(e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <label htmlFor="autoStart" className="text-sm text-gray-900 dark:text-white">
+                        Auto-start timer when protocol runs
+                      </label>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setShowTimerConfig(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateTimer}>
+                        <Timer className="w-4 h-4 mr-2" />
+                        Add Timer
                       </Button>
                     </div>
                   </div>
